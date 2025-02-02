@@ -1,6 +1,17 @@
 # Intensity
 
-Intensity is a post-quantum end-to-end-encrypted chat server, and client for quick fire temporary chat rooms.
+Intensity is a post-quantum end-to-end-encrypted off-the-record (holy buzzwords) chat server, and client for quick fire temporary chat rooms.
+
+## Roadmap
+
+- The server implementation
+  - Messaging
+  - Approval system
+  - Basic tripcode system
+  - E2EE
+  - OTR
+- The client implementation
+
 
 ## Source Conditions
 
