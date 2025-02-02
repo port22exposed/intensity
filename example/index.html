@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+    <style>
+      #chat { height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+        #message { width: 80%; padding: 5px; }
+        button { padding: 5px 10px; }
+    </style>
+  </head>
+  <body>
+    <h1>Chat Room</h1>
+    <div id="chat"></div>
+    <input type="text" id="message" placeholder="Type a message...">
+    <button onclick="sendMessage()">Send</button>
+    <script>
+      let socket;
+        const username = prompt("Enter your username:");
+        if (username) {
+            socket = new WebSocket(`ws://localhost:3000?username=${encodeURIComponent(username)}`);
+            
+            socket.onopen = () => {
+                addMessage("System", "Connecting to chat...");
+            };
+
+            socket.onmessage = (event) => {
+                addMessage("", event.data);
+            };
+
+            socket.onclose = (event) => {
+                if (event.reason) {
+                    addMessage("System", `Disconnected: ${event.reason}`);
+                } else {
+                    addMessage("System", "Disconnected from chat.");
+                }
+            };
+        } else {
+            addMessage("System", "Username is required to join the chat.");
+        }
+
+        function addMessage(sender, message) {
+            const chatDiv = document.getElementById('chat');
+            const messageElement = document.createElement('p');
+            messageElement.textContent = sender ? `${sender}: ${message}` : message;
+            chatDiv.appendChild(messageElement);
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById('message');
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(messageInput.value);
+                messageInput.value = '';
+            } else {
+                addMessage("System", "Not connected to chat.");
+            }
+        }
+    </script>
+  </body>
+</html>
