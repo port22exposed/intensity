@@ -7,9 +7,8 @@ Intensity is a post-quantum end-to-end-encrypted off-the-record (holy buzzwords)
 - The server implementation
   - Messaging
   - Approval system
-  - Basic tripcode system
+    - Optional code to include with the approval to ensure that it's not a third party attempting to masquerade as *insert username here*
   - E2EE
-  - OTR
 - The client implementation
 
 
