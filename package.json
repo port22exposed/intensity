@@ -7,5 +7,11 @@
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "@dashlane/pqc-kem-sntrup761-node": "./package/"
+  },
+  "trustedDependencies": [
+    "core-js"
+  ]
 }
