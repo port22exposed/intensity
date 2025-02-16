@@ -6,6 +6,13 @@ pub fn build(b: *std.Build) void {
 
     const exe = b.addExecutable(.{ .name = "intensity", .root_source_file = b.path("src/main.zig"), .target = target, .optimize = optimize, .strip = optimize != .Debug });
 
+    const zap = b.dependency("zap", .{
+        .target = target,
+        .optimize = optimize,
+    });
+
+    exe.root_module.addImport("zap", zap.module("zap"));
+
     b.installArtifact(exe);
 
     const run_cmd = b.addRunArtifact(exe);
