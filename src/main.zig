@@ -10,6 +10,10 @@ fn on_request(r: zap.Request) void {
 }
 
 pub fn main() !void {
+    // Required for the GPA
+    websockets.init();
+    defer websockets.deinit();
+
     var listener = zap.HttpListener.init(.{
         .port = 3000,
         .on_request = on_request,
