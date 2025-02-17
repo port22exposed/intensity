@@ -17,7 +17,7 @@ pub fn main() !void {
         .port = 3000,
         .on_request = on_request,
         .public_folder = "public",
-        .log = true,
+        .log = std.builtin.OptimizeMode == .Debug,
     });
     try listener.listen();
 
