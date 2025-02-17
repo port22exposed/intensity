@@ -38,16 +38,4 @@ pub fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
         deny_request(r);
         return;
     }
-
-    std.log.info("username: {s} {any}", .{ username.?, username.? });
-
-    // } else {
-    //     deny_request(r);
-    // }
-
-    // if (username) |name| {
-    //     std.log.info("username: {s}", .{name});
-    // } else {
-    //     deny_request(r);
-    // }
 }
