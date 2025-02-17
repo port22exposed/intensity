@@ -22,6 +22,7 @@ pub fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
 
     if (r.getParamStr(allocator, "username", false)) |maybe_username| {
         if (maybe_username) |*name| {
+            defer name.deinit(); // the docs for this are weird, it may not be needed
             username = allocator.alloc(u8, name.str.len) catch unreachable;
             @memcpy(username.?, name.str);
         } else {
@@ -34,7 +35,7 @@ pub fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
         return;
     }
 
-    std.log.info("username: {any}", .{username});
+    std.log.info("username: {s}", .{username.?});
 
     // } else {
     //     deny_request(r);
