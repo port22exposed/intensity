@@ -3,7 +3,9 @@ const std = @import("std");
 const zap = @import("zap");
 
 fn on_request(r: zap.Request) void {
-    r.sendBody("<html><body><h1>error 404: not found</h1></body></html>") catch return;
+    r.setStatus(.not_found);
+    r.sendBody("<html><body><h1>404 - File not found</h1></body></html>") catch return;
+}
 }
 
 pub fn main() !void {
