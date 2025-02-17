@@ -18,7 +18,7 @@ pub fn main() !void {
         .port = 3000,
         .on_request = on_request,
         .on_upgrade = websockets.on_upgrade,
-        .max_clients = 1000,
+        .max_clients = 1024,
         .max_body_size = 1 * 1024,
         .ws_timeout = 60, // disconnects, if no response in 60s
         .public_folder = "public",
@@ -26,8 +26,8 @@ pub fn main() !void {
     });
     try listener.listen();
 
-    std.log.info("HTTP server listening on http://localhost:3000\n", .{});
-    std.log.info("WebSocket server listening on ws://localhost:3000\n", .{});
+    std.log.info("HTTP server listening on http://localhost:3000", .{});
+    std.log.info("WebSocket server listening on ws://localhost:3000", .{});
     std.log.info("Terminate with CTRL+C", .{});
 
     zap.start(.{
