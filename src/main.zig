@@ -22,7 +22,8 @@ pub fn main() !void {
     });
     try listener.listen();
 
-    std.debug.print("Listening on http://localhost:3000\n", .{});
+    std.log.info("HTTP server listening on http://localhost:3000\n", .{});
+    std.log.info("WebSocket server listening on ws://localhost:3000\n", .{});
 
     zap.start(.{
         .threads = @intCast(try std.Thread.getCpuCount()),
