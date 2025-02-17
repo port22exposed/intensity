@@ -16,6 +16,7 @@ pub fn main() !void {
     var listener = zap.HttpListener.init(.{
         .port = 3000,
         .on_request = on_request,
+        .public_folder = "public",
         .log = true,
     });
     try listener.listen();
