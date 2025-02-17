@@ -24,6 +24,7 @@ pub fn main() !void {
 
     std.log.info("HTTP server listening on http://localhost:3000\n", .{});
     std.log.info("WebSocket server listening on ws://localhost:3000\n", .{});
+    std.log.info("Terminate with CTRL+C", .{});
 
     zap.start(.{
         .threads = @intCast(try std.Thread.getCpuCount()),
