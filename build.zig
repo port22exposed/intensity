@@ -13,6 +13,8 @@ pub fn build(b: *std.Build) void {
 
     exe.root_module.addImport("zap", zap.module("zap"));
 
+    b.installDirectory(.{ .source_dir = b.path("public"), .install_dir = .{ .custom = "public" }, .install_subdir = "" });
+
     b.installArtifact(exe);
 
     const run_cmd = b.addRunArtifact(exe);
