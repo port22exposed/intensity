@@ -24,7 +24,7 @@ pub fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
         if (maybe_username) |*name| {
             defer name.deinit(); // the docs for this are weird, it may not be needed
             username = allocator.alloc(u8, name.str.len) catch {
-                std.log.err("failed to allocate memory for username!");
+                std.log.err("failed to allocate memory for username!", .{});
                 deny_request(r);
                 return;
             };
