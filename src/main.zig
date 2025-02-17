@@ -20,9 +20,8 @@ pub fn main() !void {
     });
     try listener.listen();
 
-    std.debug.print("Listening on 0.0.0.0:3000\n", .{});
+    std.debug.print("Listening on http://localhost:3000\n", .{});
 
-    // start worker threads
     zap.start(.{
         .threads = @intCast(try std.Thread.getCpuCount()),
         .workers = 4,
