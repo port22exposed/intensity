@@ -4,4 +4,4 @@ Intensity is a post-quantum end-to-end-encrypted chat server, and client for qui
 
 ## Source Conditions
 
-This project is licensed under the European Union Public License (EUPL), version 1.2 or later.
+This project is licensed under the [BSD 2-Clause License](./LICENSE).
