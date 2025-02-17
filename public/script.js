@@ -1,3 +1,5 @@
+prompt("Enter a username to join!", "user");
+
 function createMessage(user, text) {
 	const message = document.createElement("div");
 	message.className = "message";
