@@ -32,27 +32,10 @@ pub fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
         return;
     }
 
-    const allocator = std.heap.page_allocator;
+    const username: ?[]const u8 = r.getParamSlice("username");
 
-    r.parseQuery(); // this took too long to find please explode zig zap!
-
-    var username: ?[]u8 = null;
-
-    if (r.getParamStr(allocator, "username", false)) |maybe_username| {
-        if (maybe_username) |*name| {
-            defer name.deinit(); // the docs for this are weird, it may not be needed
-            username = allocator.alloc(u8, name.str.len) catch {
-                std.log.err("failed to allocate memory for username!", .{});
-                deny_request(r);
-                return;
-            };
-            @memcpy(username.?, name.str);
-        } else {
-            deny_request(r);
-            return;
-        }
-    } else |e| {
-        std.log.err("failed to get `username` parameter string: {any}", .{e});
+    if (username == null) {
+        std.log.warn("received websocket connection request without a username provided", .{});
         deny_request(r);
         return;
     }
