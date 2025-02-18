@@ -39,4 +39,7 @@ pub fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
         deny_request(r);
         return;
     }
+
+    const ip = r.getHeader("x-real-ip") orelse r.getHeader("x-forwarded-for") orelse r.getHeader("cf-connecting-ip") orelse null;
+    _ = ip;
 }
