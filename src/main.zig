@@ -26,7 +26,7 @@ fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
         return;
     }
 
-    const ip = r.getHeader("cf-connecting-ip") orelse r.getHeader("X-Forwarded-For") orelse r.getHeader("X-Real-IP") orelse null;
+    const ip = r.getHeader("cf-connecting-ip") orelse r.getHeader("x-forwarded-for") orelse r.getHeader("x-real-ip") orelse null;
 
     if (ip) |clientAddr| {
         const ipStored: []u8 = GlobalState.allocator.alloc(u8, clientAddr.len) catch |err| {
