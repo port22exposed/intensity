@@ -35,7 +35,7 @@ pub fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
     const username: ?[]const u8 = r.getParamSlice("username");
 
     if (username == null) {
-        std.log.warn("received websocket connection request without a username provided", .{});
+        std.log.warn("received illegal websocket connection request: no username provided", .{});
         deny_request(r);
         return;
     }
