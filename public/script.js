@@ -1,4 +1,4 @@
-window.onload = setTimeout(() => {
+setTimeout(() => {
 	function is_valid_username (username) {
 		let valid = username != null;
 		const len = username.length;
@@ -60,4 +60,4 @@ window.onload = setTimeout(() => {
 	
 	const config = { childList: true };
 	observer.observe(messagelist, config);
-}, 100)
+}, 50)
