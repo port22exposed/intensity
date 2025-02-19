@@ -21,26 +21,12 @@ fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
     const username: ?[]const u8 = r.getParamSlice("username");
 
     if (username == null) {
-        std.log.warn("received illegal websocket connection request: no username provided", .{});
+        std.log.warn("received illegal websocket upgrade request: no username provided", .{});
         validation.deny_request(r);
         return;
     }
 
-    const ip = r.getHeader("cf-connecting-ip") orelse r.getHeader("x-forwarded-for") orelse r.getHeader("x-real-ip") orelse null;
-
-    if (ip) |clientAddr| {
-        const ipStored: []u8 = GlobalState.allocator.alloc(u8, clientAddr.len) catch |err| {
-            std.log.err("Failed to allocate memory: {}", .{err});
-            validation.deny_request(r);
-            return;
-        };
-        @memcpy(ipStored, clientAddr);
-        GlobalState.blocked_ips.append(ipStored) catch |err| {
-            std.log.err("Failed to append IP to blocked_ips: {}", .{err});
-            GlobalState.allocator.free(ipStored);
-            validation.deny_request(r);
-        };
-    }
+    std.log.info("{any}", .{GlobalState.blocked_ips});
 
     validation.deny_request(r);
     return;
