@@ -6,34 +6,58 @@ const validation = @import("./validation.zig");
 
 const State = @import("./state.zig").State;
 
+const ws = @import("./ws.zig");
+
 fn on_request(r: zap.Request) void {
     r.setStatus(.not_found);
     r.sendBody("<html><body><h1>404 - File not found</h1></body></html>") catch return;
 }
 
 fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
+    const log = std.log.scoped(.websocket_upgrade);
+
     if (!std.mem.eql(u8, target_protocol, "websocket")) {
-        std.log.warn("received illegal protocol: {s}", .{target_protocol});
-        validation.deny_request(r);
-        return;
+        log.warn("received illegal protocol: {s}", .{target_protocol});
+        return validation.deny_request(r);
     }
 
     if (GlobalState.is_ip_blocked(r)) {
-        std.log.warn("received illegal websocket upgrade request: IP is blocked", .{});
-        validation.deny_request(r);
-        return;
+        log.warn("received illegal websocket upgrade request: IP is blocked", .{});
+        return validation.deny_request(r);
     }
 
-    const username: ?[]const u8 = r.getParamSlice("username");
+    const username = r.getParamSlice("username") orelse {
+        log.warn("received illegal websocket upgrade request: no username provided", .{});
+        return validation.deny_request(r);
+    };
 
-    if (username == null) {
-        std.log.warn("received illegal websocket upgrade request: no username provided", .{});
-        validation.deny_request(r);
-        return;
+    if (!validation.is_valid_user(username)) {
+        log.warn("received illegal websocket upgrade request: username '{s}' is invalid", .{username});
+        return validation.deny_request(r);
     }
+
+    const ownedUsername = GlobalContextManager.allocator.dupe(u8, username) catch |err| {
+        std.log.err("failed to convert the username '{s}' into owned memory: {}", .{ username, err });
+        return;
+    };
+
+    var context = GlobalContextManager.newContext(ownedUsername) catch |err| {
+        log.err("Error creating context: {any}", .{err});
+        return validation.deny_request(r);
+    };
+
+    WebsocketHandler.upgrade(r.h, &context.settings) catch |err| {
+        log.err("Error in WebSocketHandler.upgrade(): {any}", .{err});
+        return validation.deny_request(r);
+    };
+
+    log.debug("successful for user: {s}", .{ownedUsername});
 }
 
 var GlobalState: State = undefined;
+var GlobalContextManager: ws.ContextManager = undefined;
+
+const WebsocketHandler = ws.WebsocketHandler;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{
@@ -47,6 +71,9 @@ pub fn main() !void {
 
     GlobalState = State.init(allocator);
     defer GlobalState.deinit();
+
+    GlobalContextManager = ws.ContextManager.init(allocator);
+    defer GlobalContextManager.deinit();
 
     var listener = zap.HttpListener.init(.{
         .port = 3000,
