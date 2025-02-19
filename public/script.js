@@ -1,4 +1,10 @@
-prompt("Enter a username to join!", "user");
+const username = prompt("Enter a username to join!", "user");
+
+if (!username) {
+	window.location.reload();
+}
+
+const websocket = new WebSocket(`${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/?username=${username}`);
 
 function createMessage(user, text) {
 	const message = document.createElement("div");
