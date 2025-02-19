@@ -28,7 +28,6 @@ fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
 
     if (username == null) {
         std.log.warn("received illegal websocket upgrade request: no username provided", .{});
-        GlobalState.block_ip(r); // GET OUT!
         validation.deny_request(r);
         return;
     }
