@@ -11,17 +11,15 @@ pub fn deny_request(r: zap.Request) void {
 // Usernames must be between 3-20 characters
 // Character set of A-Z, a-z, 0-9 or _ and -
 pub fn is_valid_user(username: []const u8) bool {
-    var valid = true;
-
     for (username) |char| {
         if (!std.ascii.isAlphanumeric(char) and char != '_' and char != '-') {
-            valid = false;
+            return false;
         }
     }
 
     if (username.len <= 3 or username.len >= 20) {
-        valid = false;
+        return false;
     }
 
-    return valid;
+    return true;
 }
