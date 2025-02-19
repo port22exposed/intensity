@@ -3,23 +3,22 @@
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="color-scheme" content="light dark">
 		<title>Intensity</title>
 
 		<link rel="stylesheet" href="style.css">
+		<script type="module" src="script.js"></script>
 	</head>
 	<body>
 		<header>
 			<h1>Temporary Group Chat • {user_count} Users</h1>
 			<h2>Powered by <a href="https://github.com/port22exposed/intensity"><strong>Intensity</strong></a></h2>
 		</header>
-		<div class="messagelist" id="messagelist">
-		</div>
+		<div class="messagelist" id="messagelist"></div>
 		<div class="messagebox">
-			<span class="name">{client_username}</span>
+			<span id="name" class="name">{client_username}</span>
 			<input type="text" id="message" placeholder="Type your message here...">
 			<button id="send">Send</button>
 		</div>
-
-		<script type="module" src="script.js"></script>
 	</body>
 </html>
