@@ -3,14 +3,8 @@ const zap = @import("zap");
 
 const validation = @import("./validation.zig");
 
-fn get_ip(r: zap.Request) []u8 {
-    const ip = r.getHeader("cf-connecting-ip") orelse r.getHeader("x-forwarded-for") orelse r.getHeader("x-real-ip") orelse "unknown";
-
-    if (std.mem.eql(u8, ip, "unknown")) {
-        std.log.warn("received illegal websocket upgrade request: IP address unobtainable", .{});
-        validation.deny_request(r);
-        return;
-    }
+fn get_ip(r: zap.Request) ?[]const u8 {
+    const ip = r.getHeader("cf-connecting-ip") orelse r.getHeader("x-forwarded-for") orelse r.getHeader("x-real-ip") orelse null;
 
     return ip;
 }
@@ -33,11 +27,13 @@ pub const State = struct {
     }
 
     pub fn is_ip_blocked(self: *Self, r: zap.Request) bool {
-        const clientIp = get_ip(r);
+        const questionableIp = get_ip(r);
 
-        for (self.blocked_ips.items) |ip| {
-            if (std.mem.eql(u8, ip, clientIp)) {
-                return true;
+        if (questionableIp) |clientIp| {
+            for (self.blocked_ips.items) |ip| {
+                if (std.mem.eql(u8, ip, clientIp)) {
+                    return true;
+                }
             }
         }
 
@@ -45,17 +41,23 @@ pub const State = struct {
     }
 
     pub fn block_ip(self: *Self, r: zap.Request) void {
-        const ip = get_ip(r);
+        defer validation.deny_request(r);
 
-        const ipNonTemp: []u8 = self.allocator.dupe(u8, ip) catch |err| {
-            std.log.err("Failed to duplicate IP address within memory: {}", .{err});
-        };
+        const questionableIp = get_ip(r);
 
-        self.blocked_ips.append(ipNonTemp) catch |err| {
-            std.log.err("Failed to append IP to blocked_ips: {}", .{err});
-            self.allocator.free(ipNonTemp);
-        };
+        if (questionableIp) |clientIp| {
+            const ownedIp = self.allocator.dupe(u8, clientIp) catch |err| {
+                std.log.err("failed to convert the user's IP address into owned memory: {}", .{err});
+                return;
+            };
+            self.blocked_ips.append(ownedIp) catch |err| {
+                std.log.err("failed to append client IP to blocked_ips array: {}", .{err});
+            };
+        } else {
+            std.log.err("failed to obtain client IP address from headers!", .{});
+        }
 
         validation.deny_request(r);
+        return;
     }
 };
