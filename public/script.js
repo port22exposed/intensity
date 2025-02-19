@@ -20,7 +20,7 @@ function createMessage(user, text) {
 	return message;
 }
 
-setTimeout(() => {
+window.onload = () => {
 	const username = prompt("Enter a username to join!", "user");
 	
 	if (!is_valid_username(username)) {
@@ -60,4 +60,4 @@ setTimeout(() => {
 	
 	const config = { childList: true };
 	observer.observe(messagelist, config);
-}, 50)
+}
