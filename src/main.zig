@@ -22,32 +22,32 @@ fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
     }
 
     if (GlobalState.is_ip_blocked(r)) {
-        log.warn("received illegal websocket upgrade request: IP is blocked", .{});
+        log.warn("received illegal request: IP is blocked", .{});
         return validation.deny_request(r);
     }
 
     const username = r.getParamSlice("username") orelse {
-        log.warn("received illegal websocket upgrade request: no username provided", .{});
+        log.warn("received illegal request: no username provided", .{});
         return validation.deny_request(r);
     };
 
     if (!validation.is_valid_user(username)) {
-        log.warn("received illegal websocket upgrade request: username '{s}' is invalid", .{username});
+        log.warn("received illegal request: username '{s}' is invalid", .{username});
         return validation.deny_request(r);
     }
 
     const ownedUsername = GlobalContextManager.allocator.dupe(u8, username) catch |err| {
-        std.log.err("failed to convert the username '{s}' into owned memory: {}", .{ username, err });
+        std.log.err("failed to clone the username '{s}' into owned memory: {}", .{ username, err });
         return;
     };
 
     var context = GlobalContextManager.newContext(ownedUsername) catch |err| {
-        log.err("Error creating context: {any}", .{err});
+        log.err("error creating context: {any}", .{err});
         return validation.deny_request(r);
     };
 
     WebsocketHandler.upgrade(r.h, &context.settings) catch |err| {
-        log.err("Error in WebSocketHandler.upgrade(): {any}", .{err});
+        log.err("error in WebSocketHandler.upgrade(): {any}", .{err});
         return validation.deny_request(r);
     };
 
