@@ -2,8 +2,6 @@ const std = @import("std");
 const zap = @import("zap");
 const WebSockets = zap.WebSockets;
 
-var GlobalContext = @import("./main.zig").GlobalContext;
-
 pub fn deny_request(r: zap.Request) void {
     r.setStatus(.bad_request);
     r.sendBody("400 - BAD REQUEST") catch unreachable;
