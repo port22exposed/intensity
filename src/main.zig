@@ -51,7 +51,7 @@ fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
         return validation.deny_request(r);
     };
 
-    log.debug("successful for user: {s}", .{ownedUsername});
+    log.debug("successful upgrade for user: {s}", .{ownedUsername});
 }
 
 var GlobalState: State = undefined;
