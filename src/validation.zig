@@ -5,6 +5,7 @@ const WebSockets = zap.WebSockets;
 pub fn deny_request(r: zap.Request) void {
     r.setStatus(.bad_request);
     r.sendBody("400 - BAD REQUEST") catch unreachable;
+    return;
 }
 
 // Usernames must be between 3-20 characters

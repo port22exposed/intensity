@@ -18,18 +18,20 @@ fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
         return;
     }
 
-    const username: ?[]const u8 = r.getParamSlice("username");
-
-    if (username == null) {
-        std.log.warn("received illegal websocket upgrade request: no username provided", .{});
+    if (GlobalState.is_ip_blocked(r)) {
+        std.log.warn("received illegal websocket upgrade request: IP is blocked", .{});
         validation.deny_request(r);
         return;
     }
 
-    std.log.info("{any}", .{GlobalState.blocked_ips});
+    const username: ?[]const u8 = r.getParamSlice("username");
 
-    validation.deny_request(r);
-    return;
+    if (username == null) {
+        std.log.warn("received illegal websocket upgrade request: no username provided", .{});
+        GlobalState.block_ip(r); // GET OUT!
+        validation.deny_request(r);
+        return;
+    }
 }
 
 var GlobalState: State = undefined;

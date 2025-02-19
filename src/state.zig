@@ -41,8 +41,6 @@ pub const State = struct {
     }
 
     pub fn block_ip(self: *Self, r: zap.Request) void {
-        defer validation.deny_request(r);
-
         const questionableIp = get_ip(r);
 
         if (questionableIp) |clientIp| {
@@ -57,7 +55,6 @@ pub const State = struct {
             std.log.err("failed to obtain client IP address from headers!", .{});
         }
 
-        validation.deny_request(r);
         return;
     }
 };
