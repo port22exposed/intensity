@@ -54,8 +54,18 @@ window.onload = () => {
 	const messagebox = document.getElementById("message")
 	const sendbutton = document.getElementById("send")
 
+	function updateScrollPosition () {
+		if (
+			messagelist.scrollTop + messagelist.clientHeight >=
+			messagelist.scrollHeight - messagelist.lastChild.clientHeight * 2
+		) {
+			messagelist.scrollTop = messagelist.scrollHeight
+		}
+	}
+
 	function sendSystem(text) {
 		messagelist.appendChild(createSystemMessage(text))
+		updateScrollPosition()
 	}
 
 	websocket.onmessage = function (e) {
@@ -78,6 +88,7 @@ window.onload = () => {
 		messagelist.appendChild(createMessage(username, messagebox.value))
 		messagebox.value = ""
 		messagelist.scrollTop = messagelist.scrollHeight
+		updateScrollPosition()
 	}
 
 	messagebox.addEventListener("keydown", (e) => {
@@ -87,15 +98,4 @@ window.onload = () => {
 	})
 
 	sendbutton.onclick = send;
-
-	const observer = new MutationObserver(() => {
-		if (
-			messagelist.scrollTop + messagelist.clientHeight >=
-			messagelist.scrollHeight - messagelist.lastChild.clientHeight * 2
-		) {
-			messagelist.scrollTop = messagelist.scrollHeight
-		}
-	})
-
-	observer.observe(messagelist, { childList: true })
 }
