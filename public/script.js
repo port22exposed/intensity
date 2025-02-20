@@ -32,7 +32,7 @@ function createSystemMessage(text) {
 }
 
 window.onload = () => {
-	const username = prompt("Enter a username to join!", "user")
+	const username = prompt("Enter a username to join!\n\n[WARNING]: The username is shared with the server unencrypted!", "user")
 
 	if (!is_valid_username(username)) {
 		window.location.reload()
