@@ -92,7 +92,7 @@ fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
             return;
         };
 
-        const GlobalContextManager = global.get_global_context_manager();
+        const GlobalContextManager = global.get_context_manager();
 
         const updatePacket = .{ .userCount = GlobalContextManager.contexts.items.len, .userJoining = ctx.username };
 
@@ -112,7 +112,7 @@ fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
 fn on_close_websocket(context: ?*Context, uuid: isize) void {
     _ = uuid;
     if (context) |ctx| {
-        const GlobalContextManager = global.get_global_context_manager();
+        const GlobalContextManager = global.get_context_manager();
         for (GlobalContextManager.contexts.items, 0..) |item, index| {
             if (item == ctx) {
                 _ = GlobalContextManager.contexts.swapRemove(index);

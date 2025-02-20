@@ -15,7 +15,7 @@ fn on_request(r: zap.Request) void {
 }
 
 fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
-    var GlobalContextManager = global.get_global_context_manager();
+    var GlobalContextManager = global.get_context_manager();
 
     const log = std.log.scoped(.websocket_upgrade);
 
@@ -74,7 +74,7 @@ pub fn main() !void {
     GlobalState = State.init(allocator);
     defer GlobalState.deinit();
 
-    var GlobalContextManager = global.init_global_context_manager(allocator);
+    var GlobalContextManager = global.init_context_manager(allocator);
     defer GlobalContextManager.deinit();
 
     var listener = zap.HttpListener.init(.{
