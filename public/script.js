@@ -49,21 +49,21 @@ window.onload = () => {
 	websocket.onerror = exit
 	websocket.onclose = exit
 
-	const userCount = document.getElementById("usercount")
+	const usercount = document.getElementById("usercount")
+	const messagelist = document.getElementById("messagelist")
+	const messagebox = document.getElementById("message")
+	const sendbutton = document.getElementById("send")
 
 	function sendSystem(text) {
 		messagelist.appendChild(createSystemMessage(text))
-		messagelist.scrollTop = messagelist.scrollHeight
 	}
 
 	websocket.onmessage = function (e) {
 		const packet = JSON.parse(e.data)
-		console.log(packet)
 		if (packet.type == "update") {
 			const data = packet.data
-			console.log(data)
 			if (data.userCount) {
-				userCount.innerText = data.userCount
+				usercount.innerText = data.userCount
 			}
 			if (data.userJoining) {
 				sendSystem(`${data.userJoining} has joined the chat.`)
@@ -80,19 +80,13 @@ window.onload = () => {
 		messagelist.scrollTop = messagelist.scrollHeight
 	}
 
-	const messagelist = document.getElementById("messagelist")
-	const messagebox = document.getElementById("message")
-	const sendbutton = document.getElementById("send")
-
 	messagebox.addEventListener("keydown", (e) => {
 		if (e.key === "Enter") {
 			send()
 		}
 	})
 
-	sendbutton.onclick = () => {
-		send()
-	}
+	sendbutton.onclick = send;
 
 	const observer = new MutationObserver(() => {
 		if (
@@ -103,6 +97,5 @@ window.onload = () => {
 		}
 	})
 
-	const config = { childList: true }
-	observer.observe(messagelist, config)
+	observer.observe(messagelist, { childList: true })
 }
