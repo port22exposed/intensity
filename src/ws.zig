@@ -85,6 +85,11 @@ pub const ContextManager = struct {
     }
 };
 
+const Packet = struct {
+    type: []const u8,
+    data: type,
+};
+
 fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
     if (context) |ctx| {
         _ = WebSocketHandler.subscribe(handle, &ctx.subscribeArgs) catch |err| {
@@ -94,7 +99,7 @@ fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
 
         const GlobalContextManager = global.get_context_manager();
 
-        const updatePacket = .{ .userCount = GlobalContextManager.contexts.items.len, .userJoining = ctx.username };
+        const updatePacket = Packet{ .type = "update", .data = .{ .userCount = GlobalContextManager.contexts.items.len, .userJoining = ctx.username } };
 
         const allocator = std.heap.page_allocator;
 
@@ -119,17 +124,18 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
                 break;
             }
         }
-        // say goodbye
-        var buf: [128]u8 = undefined;
-        const message = std.fmt.bufPrint(
-            &buf,
-            "{s} left the chat.",
-            .{ctx.username},
-        ) catch unreachable;
 
-        // send notification to all others
-        WebSocketHandler.publish(.{ .channel = ctx.channel, .message = message });
-        std.log.info("websocket closed: {s}", .{message});
+        const updatePacket = Packet{ .type = "update", .data = .{ .userCount = GlobalContextManager.contexts.items.len, .userLeaving = ctx.username } };
+
+        const allocator = std.heap.page_allocator;
+
+        const jsonString = std.json.stringifyAlloc(allocator, updatePacket, .{}) catch |err| {
+            std.log.err("error allocating memory for update packet: {}", .{err});
+            return;
+        };
+        defer allocator.free(jsonString);
+
+        WebSocketHandler.publish(.{ .channel = ctx.channel, .message = jsonString });
     }
 }
 
