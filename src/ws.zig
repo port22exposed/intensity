@@ -40,35 +40,49 @@ pub const ContextManager = struct {
         self.contexts.deinit();
     }
 
+    pub fn availableName(self: *Self, username: []u8) !bool {
+        const lowercaseNameToCompare = try std.ascii.allocLowerString(self.allocator, username);
+        defer self.allocator.free(lowercaseNameToCompare);
+
+        for (self.contexts.items) |context| {
+            const lowercaseName = try std.ascii.allocLowerString(self.allocator, context.username);
+            defer self.allocator.free(lowercaseName);
+            if (std.mem.eql(u8, lowercaseName, lowercaseNameToCompare)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     pub fn newContext(self: *Self, username: []u8) !*Context {
         self.lock.lock();
         defer self.lock.unlock();
 
-        const ctx = try self.allocator.create(Context);
-        ctx.* = .{
-            .username = username,
-            .channel = "comms",
-            // used in subscribe()
-            .subscribeArgs = .{
+        if (try self.availableName(username)) {
+            const ctx = try self.allocator.create(Context);
+            ctx.* = .{
+                .username = username,
                 .channel = "comms",
-                .force_text = true,
-                .context = ctx,
-            },
-            // used in upgrade()
-            .settings = .{
-                .on_open = on_open_websocket,
-                .on_close = on_close_websocket,
-                .on_message = handle_websocket_message,
-                .context = ctx,
-            },
-        };
-        try self.contexts.append(ctx);
-        return ctx;
+                // used in subscribe()
+                .subscribeArgs = .{
+                    .channel = "comms",
+                    .force_text = true,
+                    .context = ctx,
+                },
+                // used in upgrade()
+                .settings = .{
+                    .on_open = on_open_websocket,
+                    .on_close = on_close_websocket,
+                    .on_message = handle_websocket_message,
+                    .context = ctx,
+                },
+            };
+            try self.contexts.append(ctx);
+            return ctx;
+        } else {
+            return error{NameUnavailable}.NameUnavailable;
+        }
     }
-};
-
-const initMessage = struct {
-    userCount: usize,
 };
 
 fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
@@ -88,12 +102,20 @@ fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
 
         const GlobalContextManager = global.get_global_context_manager();
 
-        std.log.info("{}", .{GlobalContextManager.contexts.items.len});
+        const updatePacket = .{
+            .userCount = GlobalContextManager.contexts.items.len,
+        };
 
-        // var jsonBuff: [1024]u8 = undefined;
-        // const stream = std.io.fixedBufferStream(&jsonBuff);
+        const allocator = std.heap.page_allocator;
 
-        // WebSocketHandler.write(handle, std.json.stringify(initMessage{.userCount = }), true) catch unreachable;
+        const jsonString = std.json.stringifyAlloc(allocator, updatePacket, .{}) catch |err| {
+            std.log.err("error allocating memory for update packet: {}", .{err});
+            WebSocketHandler.close(handle);
+            return;
+        };
+        defer allocator.free(jsonString);
+
+        WebSocketHandler.write(handle, jsonString, true) catch unreachable;
 
         // send notification to all others
         WebSocketHandler.publish(.{ .channel = ctx.channel, .message = message });
