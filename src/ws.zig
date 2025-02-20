@@ -94,7 +94,7 @@ fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
 
         const GlobalContextManager = global.get_context_manager();
 
-        const updatePacket = .{ .type = "update", .userCount = GlobalContextManager.contexts.items.len, .userJoining = ctx.username };
+        const updatePacket = .{ .type = "update", .data = .{ .userCount = GlobalContextManager.contexts.items.len, .userJoining = ctx.username } };
 
         const allocator = std.heap.page_allocator;
 
