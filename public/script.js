@@ -92,13 +92,30 @@ window.onload = () => {
 			const args = message.split(" ")
 			const command = args[0].substring(1)
 			if (command == "help") {
-				window.open("/help.txt").focus();
+				sendSystem(`Intensity Chat - Commands List
+
+EVERYONE:
+
+/help - sends you here...
+/host - displays the host in chat to you
+
+OPERATOR:
+
+/decline <username> - declines a user's entry into the group chat
+/accept <username> - accepts a user's entry into the group chat
+/kick <username> - kicks a user from the group chat and bans their IP address
+
+OWNER:
+
+/op <username> - gives the user operator status
+/transfer <username> - transfers ownership of the group chat to another member`)
 			}
+		} else {
+			messagelist.appendChild(createMessage(username, messagebox.value))
+			messagelist.scrollTop = messagelist.scrollHeight
+			updateScrollPosition()
 		}
-		messagelist.appendChild(createMessage(username, messagebox.value))
 		messagebox.value = ""
-		messagelist.scrollTop = messagelist.scrollHeight
-		updateScrollPosition()
 	}
 
 	messagebox.addEventListener("keydown", (e) => {
