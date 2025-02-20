@@ -19,7 +19,7 @@ pub const State = struct {
     pub fn init(allocator: std.mem.Allocator) Self {
         return Self{
             .allocator = allocator,
-            .mutex = std.Thread.Mutex(),
+            .mutex = std.Thread.Mutex{},
             .blocked_ips = std.ArrayList([]u8).init(allocator),
         };
     }
