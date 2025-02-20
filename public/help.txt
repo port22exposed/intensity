@@ -11,7 +11,7 @@ OPERATOR:
 `/accept` `<username>` - `accepts a user's entry into the group chat`
 `/kick` `<username>` - `kicks a user from the group chat and bans their IP address`
 
-GROUP CHAT OWNER:
+OWNER:
 
 `/op` `<username>` - `gives the user operator status`
 `/transfer` `<username>` - `transfers ownership of the group chat to another member`
