@@ -9,6 +9,7 @@ pub const WebSocketHandler = WebSockets.Handler(Context);
 pub const Context = struct {
     username: []const u8,
     channel: []const u8,
+    host: bool,
     // we need to hold on to them and just re-use them for every incoming
     // connection
     subscribeArgs: WebSocketHandler.SubscribeArgs,
@@ -59,10 +60,13 @@ pub const ContextManager = struct {
         defer self.lock.unlock();
 
         if (try self.availableName(username)) {
+            const GlobalContextManager = global.get_context_manager();
+
             const ctx = try self.allocator.create(Context);
             ctx.* = .{
                 .username = username,
                 .channel = "comms",
+                .host = GlobalContextManager.contexts.items.len == 0,
                 // used in subscribe()
                 .subscribeArgs = .{
                     .channel = "comms",
