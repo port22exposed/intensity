@@ -1,24 +1,12 @@
 {
-  description = "intensity flake";
-
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
   };
-
-  outputs = { self, nixpkgs, flake-utils, ... }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = import nixpkgs {
-          system = system;
-        };
-      in
-      {
-        devShells.default = pkgs.mkShell
-          {
-            nativeBuildInputs = with pkgs; [
-              zig
-            ];
-          };
-      });
+  outputs = {nixpkgs, ...}: let
+    forAllSystems = function: nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed (system: function nixpkgs.legacyPackages.${system});
+  in {
+    packages = forAllSystems (pkgs: {
+      default = pkgs.callPackage ./package.nix {};
+    });
+  };
 }
