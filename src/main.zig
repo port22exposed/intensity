@@ -4,6 +4,7 @@ const zap = @import("zap");
 
 const validation = @import("./validation.zig");
 
+const global = @import("./global.zig");
 const State = @import("./state.zig").State;
 
 const ws = @import("./ws.zig");
@@ -14,6 +15,8 @@ fn on_request(r: zap.Request) void {
 }
 
 fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
+    var GlobalContextManager = global.get_global_context_manager();
+
     const log = std.log.scoped(.websocket_upgrade);
 
     if (!std.mem.eql(u8, target_protocol, "websocket")) {
@@ -46,7 +49,7 @@ fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
         return validation.deny_request(r);
     };
 
-    WebsocketHandler.upgrade(r.h, &context.settings) catch |err| {
+    WebSocketHandler.upgrade(r.h, &context.settings) catch |err| {
         log.err("error in WebSocketHandler.upgrade(): {any}", .{err});
         return validation.deny_request(r);
     };
@@ -55,9 +58,8 @@ fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
 }
 
 var GlobalState: State = undefined;
-var GlobalContextManager: ws.ContextManager = undefined;
 
-const WebsocketHandler = ws.WebsocketHandler;
+const WebSocketHandler = ws.WebSocketHandler;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{
@@ -72,7 +74,7 @@ pub fn main() !void {
     GlobalState = State.init(allocator);
     defer GlobalState.deinit();
 
-    GlobalContextManager = ws.ContextManager.init(allocator);
+    var GlobalContextManager = global.init_global_context_manager(allocator);
     defer GlobalContextManager.deinit();
 
     var listener = zap.HttpListener.init(.{

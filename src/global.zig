@@ -1,0 +1,14 @@
+const std = @import("std");
+
+var GlobalContextManager: ws.ContextManager = undefined;
+
+const ws = @import("./ws.zig");
+
+pub fn init_global_context_manager(allocator: std.mem.Allocator) *ws.ContextManager {
+    GlobalContextManager = ws.ContextManager.init(allocator);
+    return &GlobalContextManager;
+}
+
+pub fn get_global_context_manager() *ws.ContextManager {
+    return &GlobalContextManager;
+}
