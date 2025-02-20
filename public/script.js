@@ -24,6 +24,13 @@ function createMessage(user, text) {
 	return message
 }
 
+function createSystemMessage(text) {
+	const message = document.createElement("div")
+	message.className = "message info"
+	message.innerText = text
+	return message
+}
+
 window.onload = () => {
 	const username = prompt("Enter a username to join!", "user")
 
@@ -44,6 +51,11 @@ window.onload = () => {
 
 	const userCount = document.getElementById("usercount")
 
+	function sendSystem(text) {
+		messagelist.appendChild(createSystemMessage(text))
+		messagelist.scrollTop = messagelist.scrollHeight
+	}
+
 	websocket.onmessage = function (e) {
 		const packet = JSON.parse(e.data)
 		console.log(packet)
@@ -52,6 +64,12 @@ window.onload = () => {
 			console.log(data)
 			if (data.userCount) {
 				userCount.innerText = data.userCount
+			}
+			if (data.userJoining) {
+				sendSystem(`${data.userJoining} has joined the chat.`)
+			}
+			if (data.userLeaving) {
+				sendSystem(`${data.userLeaving} has left the chat.`)
 			}
 		}
 	}
