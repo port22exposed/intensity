@@ -1,3 +1,7 @@
+function exit() {
+	window.location.href = "about:blank";
+}
+
 function is_valid_username (username) {
 	let valid = username != null;
 	const len = username.length;
@@ -29,8 +33,18 @@ window.onload = () => {
 	
 	document.getElementById("name").innerText = username;
 	
-	const websocket = new WebSocket(`${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/?username=${username}`);
-	
+	var websocket = new WebSocket(`${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/?username=${username}`);
+
+	websocket.onerror = exit;
+	websocket.onclose = exit;
+
+	websocket.onopen = function (e) {
+		console.log(e);
+	}
+
+	websocket.onmessage = function (e) {
+		console.log(e);
+	}	
 	function send() {
 		messagelist.appendChild(createMessage(username, messagebox.value));
 		messagebox.value = "";
@@ -45,7 +59,7 @@ window.onload = () => {
 		if (e.key === "Enter") {
 			send()
 		}
-	});
+	})
 	
 	sendbutton.onclick = () => {
 		send()
@@ -55,7 +69,7 @@ window.onload = () => {
 		if (messagelist.scrollTop + messagelist.clientHeight >= messagelist.scrollHeight - messagelist.lastChild.clientHeight*2) {
 			messagelist.scrollTop = messagelist.scrollHeight;
 		}
-	});
+	})
 	
 	
 	const config = { childList: true };
