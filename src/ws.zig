@@ -92,19 +92,9 @@ fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
             return;
         };
 
-        // say hello
-        var buf: [128]u8 = undefined;
-        const message = std.fmt.bufPrint(
-            &buf,
-            "{s} joined the chat.",
-            .{ctx.username},
-        ) catch unreachable;
-
         const GlobalContextManager = global.get_global_context_manager();
 
-        const updatePacket = .{
-            .userCount = GlobalContextManager.contexts.items.len,
-        };
+        const updatePacket = .{ .userCount = GlobalContextManager.contexts.items.len, .userJoining = ctx.username };
 
         const allocator = std.heap.page_allocator;
 
@@ -115,17 +105,20 @@ fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
         };
         defer allocator.free(jsonString);
 
-        WebSocketHandler.write(handle, jsonString, true) catch unreachable;
-
-        // send notification to all others
-        WebSocketHandler.publish(.{ .channel = ctx.channel, .message = message });
-        std.log.info("new websocket opened: {s}", .{message});
+        WebSocketHandler.publish(.{ .channel = ctx.channel, .message = jsonString });
     }
 }
 
 fn on_close_websocket(context: ?*Context, uuid: isize) void {
     _ = uuid;
     if (context) |ctx| {
+        const GlobalContextManager = global.get_global_context_manager();
+        for (GlobalContextManager.contexts.items, 0..) |item, index| {
+            if (item == ctx) {
+                _ = GlobalContextManager.contexts.swapRemove(index);
+                break;
+            }
+        }
         // say goodbye
         var buf: [128]u8 = undefined;
         const message = std.fmt.bufPrint(
