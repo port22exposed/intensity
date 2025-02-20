@@ -85,11 +85,6 @@ pub const ContextManager = struct {
     }
 };
 
-const Packet = struct {
-    type: []const u8,
-    data: type,
-};
-
 fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
     if (context) |ctx| {
         _ = WebSocketHandler.subscribe(handle, &ctx.subscribeArgs) catch |err| {
@@ -99,7 +94,7 @@ fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
 
         const GlobalContextManager = global.get_context_manager();
 
-        const updatePacket = Packet{ .type = "update", .data = .{ .userCount = GlobalContextManager.contexts.items.len, .userJoining = ctx.username } };
+        const updatePacket = .{ .type = "update", .userCount = GlobalContextManager.contexts.items.len, .userJoining = ctx.username };
 
         const allocator = std.heap.page_allocator;
 
@@ -125,7 +120,7 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
             }
         }
 
-        const updatePacket = Packet{ .type = "update", .data = .{ .userCount = GlobalContextManager.contexts.items.len, .userLeaving = ctx.username } };
+        const updatePacket = .{ .type = "update", .data = .{ .userCount = GlobalContextManager.contexts.items.len, .userLeaving = ctx.username } };
 
         const allocator = std.heap.page_allocator;
 
