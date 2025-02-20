@@ -17,9 +17,9 @@ function is_valid_username(username) {
 	return valid
 }
 
-function createMessage(user, text) {
+function createMessage(user, text, className) {
 	const message = document.createElement("div")
-	message.className = "message"
+	message.className = className || "message"
 	message.innerHTML = `<span class="name">${user}</span>${text}`
 	return message
 }
@@ -68,6 +68,8 @@ window.onload = () => {
 		updateScrollPosition()
 	}
 
+	sendSystem("Type `/help` for commands!")
+
 	websocket.onmessage = function (e) {
 		const packet = JSON.parse(e.data)
 		if (packet.type == "update") {
@@ -85,6 +87,14 @@ window.onload = () => {
 	}
 
 	function send() {
+		const message = messagebox.value
+		if (message.startsWith("/")) {
+			const args = message.split(" ")
+			const command = args[0].substring(1)
+			if (command == "help") {
+				window.open("/help.txt").focus();
+			}
+		}
 		messagelist.appendChild(createMessage(username, messagebox.value))
 		messagebox.value = ""
 		messagelist.scrollTop = messagelist.scrollHeight
