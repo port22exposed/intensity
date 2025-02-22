@@ -9,7 +9,7 @@ pub const WebSocketHandler = WebSockets.Handler(Context);
 pub const Context = struct {
     username: []const u8,
     channel: []const u8,
-    host: bool,
+    permission: u8, // 0 = regular user, 1 = operator, 2 = owner
     // we need to hold on to them and just re-use them for every incoming
     // connection
     subscribeArgs: WebSocketHandler.SubscribeArgs,
@@ -66,7 +66,7 @@ pub const ContextManager = struct {
             ctx.* = .{
                 .username = username,
                 .channel = "comms",
-                .host = GlobalContextManager.contexts.items.len == 0,
+                .permission = if (GlobalContextManager.contexts.items.len == 0) 2 else 0,
                 // used in subscribe()
                 .subscribeArgs = .{
                     .channel = "comms",
@@ -120,10 +120,9 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
         const contexts = GlobalContextManager.contexts.items;
         for (contexts, 0..) |item, index| {
             if (item == ctx) {
-                if (ctx.host) {
+                if (ctx.permission == 2) {
                     if (index + 1 < contexts.len) {
-                        contexts[index + 1].host = true;
-                        std.log.info("{}", .{contexts[index + 1]});
+                        contexts[index + 1].permission = 2;
                     }
                 }
                 _ = GlobalContextManager.contexts.orderedRemove(index);
