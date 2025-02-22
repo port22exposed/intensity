@@ -90,9 +90,11 @@ pub const ContextManager = struct {
 };
 
 fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
+    const log = std.log.scoped(.websocket_open);
+
     if (context) |ctx| {
         _ = WebSocketHandler.subscribe(handle, &ctx.subscribeArgs) catch |err| {
-            std.log.err("error opening websocket: {any}", .{err});
+            log.err("error opening websocket: {any}", .{err});
             return;
         };
 
@@ -103,7 +105,7 @@ fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
         const allocator = std.heap.page_allocator;
 
         const jsonString = std.json.stringifyAlloc(allocator, updatePacket, .{}) catch |err| {
-            std.log.err("error allocating memory for update packet: {}", .{err});
+            log.err("error allocating memory for update packet: {}", .{err});
             WebSocketHandler.close(handle);
             return;
         };
@@ -114,6 +116,8 @@ fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
 }
 
 fn on_close_websocket(context: ?*Context, uuid: isize) void {
+    const log = std.log.scoped(.websocket_close);
+
     _ = uuid;
     if (context) |ctx| {
         const GlobalContextManager = global.get_context_manager();
@@ -135,7 +139,7 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
         const allocator = std.heap.page_allocator;
 
         const jsonString = std.json.stringifyAlloc(allocator, updatePacket, .{}) catch |err| {
-            std.log.err("error allocating memory for update packet: {}", .{err});
+            log.err("error allocating memory for update packet: {}", .{err});
             return;
         };
         defer allocator.free(jsonString);
@@ -150,10 +154,23 @@ fn handle_websocket_message(
     message: []const u8,
     is_text: bool,
 ) void {
-    _ = is_text;
-    _ = message;
+    const log = std.log.scoped(.websocket_message);
+
     _ = handle;
     if (context) |ctx| {
+        const allocator = std.heap.page_allocator;
+
+        // ensure the packet isn't malformed
+        const isJson = std.json.validate(allocator, message) catch |err| {
+            log.err("failed to validate JSON: {}", .{err});
+            return;
+        };
+
+        if (!isJson || !is_text) {
+            log.info("received malformed packet from {s}, invalid JSON", .{ctx.username});
+            return;
+        }
+
         WebSocketHandler.publish(.{ .channel = ctx.channel, .message = "hello world!" });
         // // send message
         // const buflen = 128; // arbitrary len
