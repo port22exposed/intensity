@@ -166,7 +166,7 @@ fn handle_websocket_message(
             return;
         };
 
-        if (!isJson || !is_text) {
+        if (!isJson or !is_text) {
             log.info("received malformed packet from {s}, invalid JSON", .{ctx.username});
             return;
         }
