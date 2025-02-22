@@ -117,8 +117,15 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
     _ = uuid;
     if (context) |ctx| {
         const GlobalContextManager = global.get_context_manager();
-        for (GlobalContextManager.contexts.items, 0..) |item, index| {
+        const contexts = GlobalContextManager.contexts.items;
+        for (contexts, 0..) |item, index| {
             if (item == ctx) {
+                if (ctx.host) {
+                    if (index + 1 < contexts.len) {
+                        contexts[index + 1].host = true;
+                        std.log.info("{}", .{contexts[index + 1]});
+                    }
+                }
                 _ = GlobalContextManager.contexts.orderedRemove(index);
                 break;
             }
