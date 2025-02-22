@@ -94,7 +94,7 @@ pub fn main() !void {
         }
 
         if (std.mem.startsWith(u8, arg, "--frontend=")) {
-            frontendDirectory = arg[7..];
+            frontendDirectory = arg[11..];
         }
     }
 
