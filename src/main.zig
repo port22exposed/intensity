@@ -85,9 +85,9 @@ pub fn main() !void {
 
     while (args_it.next()) |arg| {
         if (std.mem.startsWith(u8, arg, "--port=")) {
-            // try to parse port
             if (std.fmt.parseUnsigned(usize, arg[7..], 0)) |the_port| {
                 port = the_port;
+                std.log.debug("port, huh I've heard that somewhere.... [EASTER EGG, DO NOT DEBUG]", .{});
             } else |_| {
                 std.debug.print("Invalid port number. Using default port {}\n", .{port});
             }
@@ -97,6 +97,8 @@ pub fn main() !void {
             frontendDirectory = arg[7..];
         }
     }
+
+    std.log.info("{s}", .{frontendDirectory});
 
     var listener = zap.HttpListener.init(.{
         .port = port,
