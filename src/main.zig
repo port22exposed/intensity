@@ -77,14 +77,35 @@ pub fn main() !void {
     var GlobalContextManager = global.init_context_manager(allocator);
     defer GlobalContextManager.deinit();
 
+    var args_it = try std.process.argsWithAllocator(allocator);
+    defer args_it.deinit();
+
+    var port: usize = 3000;
+    var frontendDirectory: []const u8 = "public";
+
+    while (args_it.next()) |arg| {
+        if (std.mem.startsWith(u8, arg, "--port=")) {
+            // try to parse port
+            if (std.fmt.parseUnsigned(usize, arg[7..], 0)) |the_port| {
+                port = the_port;
+            } else |_| {
+                std.debug.print("Invalid port number. Using default port {}\n", .{port});
+            }
+        }
+
+        if (std.mem.startsWith(u8, arg, "--frontend=")) {
+            frontendDirectory = arg[7..];
+        }
+    }
+
     var listener = zap.HttpListener.init(.{
-        .port = 3000,
+        .port = port,
         .on_request = on_request,
         .on_upgrade = on_upgrade,
         .max_clients = 1024,
         .max_body_size = 1 * 1024,
         .ws_timeout = 60, // disconnects, if no response in 60s
-        .public_folder = "public",
+        .public_folder = frontendDirectory,
         .log = builtin.mode == .Debug,
     });
     try listener.listen();
