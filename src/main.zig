@@ -98,8 +98,6 @@ pub fn main() !void {
         }
     }
 
-    std.log.info("{s}", .{frontendDirectory});
-
     var listener = zap.HttpListener.init(.{
         .port = port,
         .on_request = on_request,

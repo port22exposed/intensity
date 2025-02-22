@@ -170,8 +170,6 @@ fn handle_websocket_message(
             log.info("received malformed packet from {s}, invalid JSON", .{ctx.username});
             return;
         }
-
-        WebSocketHandler.publish(.{ .channel = ctx.channel, .message = "hello world!" });
         // // send message
         // const buflen = 128; // arbitrary len
         // var buf: [buflen]u8 = undefined;
