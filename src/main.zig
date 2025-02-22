@@ -89,7 +89,7 @@ pub fn main() !void {
                 port = the_port;
                 std.log.debug("port, huh I've heard that somewhere.... [EASTER EGG, DO NOT DEBUG]", .{});
             } else |_| {
-                std.debug.print("Invalid port number. Using default port {}\n", .{port});
+                std.log.warn("Invalid port number. Using default port {}\n", .{port});
             }
         }
 
