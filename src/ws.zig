@@ -119,7 +119,7 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
         const GlobalContextManager = global.get_context_manager();
         for (GlobalContextManager.contexts.items, 0..) |item, index| {
             if (item == ctx) {
-                _ = GlobalContextManager.contexts.swapRemove(index);
+                _ = GlobalContextManager.contexts.orderedRemove(index);
                 break;
             }
         }
