@@ -1,4 +1,7 @@
 const global = @import("./global.zig");
+const json = @import("./json.zig");
+
+const packetHandlers = .{ .command = @import("./wsPackets/command.zig"), .message = @import("./wsPackets/message.zig") };
 
 const std = @import("std");
 const zap = @import("zap");
@@ -84,7 +87,7 @@ pub const ContextManager = struct {
             try self.contexts.append(ctx);
             return ctx;
         } else {
-            return error{NameUnavailable}.NameUnavailable;
+            return error.NameUnavailable;
         }
     }
 };
@@ -156,7 +159,6 @@ fn handle_websocket_message(
 ) void {
     const log = std.log.scoped(.websocket_message);
 
-    _ = handle;
     if (context) |ctx| {
         const allocator = std.heap.page_allocator;
 
@@ -167,41 +169,38 @@ fn handle_websocket_message(
         };
 
         if (!isJson or !is_text) {
-            log.info("received malformed packet from {s}, invalid JSON", .{ctx.username});
+            log.warn("received malformed packet from {s}, invalid JSON", .{ctx.username});
             return;
         }
-        // // send message
-        // const buflen = 128; // arbitrary len
-        // var buf: [buflen]u8 = undefined;
 
-        // const format_string = "{s}: {s}";
-        // const fmt_string_extra_len = 2; // ": " between the two strings
-        // //
-        // const max_msg_len = buflen - ctx.username.len - fmt_string_extra_len;
-        // if (max_msg_len > 0) {
-        //     // there is space for the message, because the user name + format
-        //     // string extra do not exceed the buffer now, let's check: do we
-        //     // need to trim the message?
-        //     var trimmed_message: []const u8 = message;
-        //     if (message.len > max_msg_len) {
-        //         trimmed_message = message[0..max_msg_len];
-        //     }
-        //     const chat_message = std.fmt.bufPrint(
-        //         &buf,
-        //         format_string,
-        //         .{ ctx.username, trimmed_message },
-        //     ) catch unreachable;
+        const parsedJsonArena = std.json.parseFromSlice(std.json.Value, allocator, message, .{}) catch |err| {
+            log.err("failed to parse JSON: {}", .{err});
+            return;
+        };
+        defer parsedJsonArena.deinit();
+        const parsedJson = parsedJsonArena.value;
 
-        //     // send notification to all others
-        //     WebSocketHandler.publish(
-        //         .{ .channel = ctx.channel, .message = chat_message },
-        //     );
-        //     std.log.info("{s}", .{chat_message});
-        // } else {
-        //     std.log.warn(
-        //         "Username is very long, cannot deal with that size: {d}",
-        //         .{ctx.username.len},
-        //     );
-        // }
+        switch (parsedJson) {
+            .object => |obj| {
+                const packetType = json.getValue([]const u8, obj, "type") catch {
+                    return;
+                };
+
+                if (std.mem.eql(u8, packetType, "command")) {
+                    packetHandlers.command.handle_message(ctx, handle, obj) catch |err| {
+                        log.warn("packet from {s} failed to be handled: {}", .{ ctx.username, err });
+                        return;
+                    };
+                } else if (std.mem.eql(u8, packetType, "message")) {
+                    packetHandlers.message.handle_message(ctx, handle, obj) catch |err| {
+                        log.warn("packet from {s} failed to be handled: {}", .{ ctx.username, err });
+                        return;
+                    };
+                } else {
+                    log.warn("packet dropped from {s}, invalid packet type: {s}", .{ ctx.username, packetType });
+                }
+            },
+            else => log.warn("malformed packet from {s}, invalid JSON", .{ctx.username}),
+        }
     }
 }
