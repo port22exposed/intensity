@@ -98,6 +98,7 @@ EVERYONE:
 
 /help - sends you here...
 /host - displays the host in chat to you
+/status - displays your current status in chat to you
 
 OPERATOR:
 
