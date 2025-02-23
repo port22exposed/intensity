@@ -1,5 +1,5 @@
 function exit() {
-	window.location.href = "about:blank"
+	window.location.reload()
 }
 
 function is_valid_username(username) {
@@ -114,6 +114,7 @@ OWNER:
 			messagelist.appendChild(createMessage(username, messagebox.value))
 			messagelist.scrollTop = messagelist.scrollHeight
 			updateScrollPosition()
+			websocket.send(messagebox.value)
 		}
 		messagebox.value = ""
 	}
