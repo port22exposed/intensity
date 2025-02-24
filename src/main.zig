@@ -84,7 +84,7 @@ pub fn main() !void {
     var port: usize = 3000;
     var frontendDirectory: []const u8 = "public";
     var threads: u8 = 2;
-    var workers: u8 = 2;
+    var workers: u8 = 1;
 
     while (args_it.next()) |arg| {
         if (std.mem.startsWith(u8, arg, "--port=")) {
