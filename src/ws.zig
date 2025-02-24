@@ -124,20 +124,10 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
     _ = uuid;
     if (context) |ctx| {
         const GlobalContextManager = global.get_context_manager();
-        const contexts = GlobalContextManager.contexts.items;
-        for (contexts, 0..) |item, index| {
-            if (item == ctx) {
-                if (ctx.permission == 2) {
-                    if (index + 1 < contexts.len) {
-                        contexts[index + 1].permission = 2;
-                    }
-                }
-                _ = GlobalContextManager.contexts.orderedRemove(index);
-                break;
-            }
-        }
 
-        const updatePacket = .{ .type = "update", .data = .{ .userCount = GlobalContextManager.contexts.items.len, .userLeaving = ctx.username } };
+        const contexts = GlobalContextManager.contexts.items;
+
+        const updatePacket = .{ .type = "update", .data = .{ .userCount = contexts.len, .userLeaving = ctx.username } };
 
         const allocator = std.heap.page_allocator;
 
@@ -148,6 +138,20 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
         defer allocator.free(jsonString);
 
         WebSocketHandler.publish(.{ .channel = ctx.channel, .message = jsonString });
+
+        for (contexts, 0..) |item, index| {
+            if (item == ctx) {
+                if (ctx.permission == 2) {
+                    if (index + 1 < contexts.len) {
+                        contexts[index + 1].permission = 2;
+                    }
+                }
+                GlobalContextManager.allocator.free(ctx.username);
+                const removedItem = GlobalContextManager.contexts.orderedRemove(index);
+                GlobalContextManager.allocator.destroy(removedItem);
+                break;
+            }
+        }
     }
 }
 
