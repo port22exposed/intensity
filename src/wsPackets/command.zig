@@ -32,6 +32,10 @@ pub fn handle_message(
 
     switch (command) {
         .kick => {
+            if (context.permission <= 1) {
+                return error.InvalidPermissions;
+            }
+
             const target = json.getValue([]const u8, object, "target") catch {
                 return error.InvalidCommandData;
             };
