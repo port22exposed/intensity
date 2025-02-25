@@ -12,6 +12,7 @@ pub const WebSocketHandler = WebSockets.Handler(Context);
 pub const Context = struct {
     username: []const u8,
     channel: []const u8,
+    handle: ?WebSockets.WsHandle,
     permission: u8, // 0 = regular user, 1 = operator, 2 = owner
     // we need to hold on to them and just re-use them for every incoming
     // connection
@@ -69,6 +70,7 @@ pub const ContextManager = struct {
             ctx.* = .{
                 .username = username,
                 .channel = "comms",
+                .handle = null,
                 .permission = if (GlobalContextManager.contexts.items.len == 0) 2 else 0,
                 // used in subscribe()
                 .subscribeArgs = .{
@@ -100,6 +102,8 @@ fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
             log.err("error opening websocket: {any}", .{err});
             return;
         };
+
+        ctx.handle = handle;
 
         const GlobalContextManager = global.get_context_manager();
 
