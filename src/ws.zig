@@ -92,6 +92,12 @@ pub const ContextManager = struct {
             return error.NameUnavailable;
         }
     }
+
+    pub fn disconnect(self: *Self, context: Context, reason: enum { kick, left }) void {
+        _ = self;
+        _ = context;
+        _ = reason;
+    }
 };
 
 fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
