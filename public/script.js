@@ -1,4 +1,4 @@
-import { createMessageElement, createSystemMessageElement, isValidUsername } from "./utility"
+import { createMessageElement, createSystemMessageElement, isValidUsername } from "./utility.js"
 
 function exit() {
 	window.location.reload()
