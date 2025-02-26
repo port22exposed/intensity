@@ -46,6 +46,9 @@ pub const ContextManager = struct {
     }
 
     pub fn availableName(self: *Self, username: []u8) !bool {
+        self.lock.lock();
+        defer self.lock.unlock();
+
         const lowercaseNameToCompare = try std.ascii.allocLowerString(self.allocator, username);
         defer self.allocator.free(lowercaseNameToCompare);
 
