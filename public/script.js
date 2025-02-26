@@ -1,40 +1,13 @@
+import { createMessageElement, createSystemMessageElement, isValidUsername } from "./utility"
+
 function exit() {
 	window.location.reload()
-}
-
-function is_valid_username(username) {
-	let valid = username != null
-	const len = username.length
-
-	if (len < 3 || len > 20) {
-		valid = false
-	}
-
-	if (!/^[a-zA-Z0-9]+$/.test(username)) {
-		valid = false
-	}
-
-	return valid
-}
-
-function createMessage(user, text, className) {
-	const message = document.createElement("div")
-	message.className = className || "message"
-	message.innerHTML = `<span class="name">${user}</span>${text}`
-	return message
-}
-
-function createSystemMessage(text) {
-	const message = document.createElement("div")
-	message.className = "message info"
-	message.innerText = text
-	return message
 }
 
 window.onload = () => {
 	const username = prompt("Enter a username to join!\n\n[WARNING]: The username is shared with the server unencrypted!", "user")
 
-	if (!is_valid_username(username)) {
+	if (!isValidUsername(username)) {
 		window.location.reload()
 	}
 
@@ -64,7 +37,7 @@ window.onload = () => {
 	}
 
 	function sendSystem(text) {
-		messagelist.appendChild(createSystemMessage(text))
+		messagelist.appendChild(createSystemMessageElement(text))
 		updateScrollPosition()
 	}
 
@@ -108,7 +81,7 @@ OWNER:
 /transfer <username> - transfers ownership of the group chat to another member`)
 			}
 		} else {
-			messagelist.appendChild(createMessage(username, messagebox.value))
+			messagelist.appendChild(createMessageElement(username, messagebox.value))
 			messagelist.scrollTop = messagelist.scrollHeight
 			updateScrollPosition()
 			websocket.send(messagebox.value)
