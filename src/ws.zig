@@ -60,6 +60,8 @@ pub const ContextManager = struct {
     }
 
     pub fn newContext(self: *Self, username: []u8) !*Context {
+        errdefer self.allocator.free(username);
+
         if (try self.availableName(username)) {
             const ctx = try self.allocator.create(Context);
             ctx.* = .{
