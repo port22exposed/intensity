@@ -90,6 +90,20 @@ pub const ContextManager = struct {
         }
     }
 
+    pub fn systemMessage(self: *Self, payload: []u8) void {
+        const log = std.log.scoped(.systemMessage);
+
+        const messagePacket = .{ .type = "systemMessage", .data = .{ .message = payload } };
+
+        const jsonString = std.json.stringifyAlloc(self.allocator, messagePacket, .{}) catch |err| {
+            log.err("error allocating memory for system message packet: {}", .{err});
+            return;
+        };
+        defer self.allocator.free(jsonString);
+
+        WebSocketHandler.publish(.{ .channel = "comms", .message = jsonString });
+    }
+
     pub fn disconnect(self: *Self, context: Context, reason: enum { kick, left }) void {
         _ = self;
         _ = context;
@@ -111,9 +125,17 @@ fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
         const GlobalContextManager = global.get_context_manager();
         defer GlobalContextManager.lock.unlock();
 
-        const updatePacket = .{ .type = "update", .data = .{ .userCount = GlobalContextManager.contexts.items.len, .userJoining = ctx.username } };
+        const allocator = GlobalContextManager.allocator;
 
-        const allocator = std.heap.page_allocator;
+        const message = std.fmt.allocPrint(allocator, "{s} has joined the chat.", .{ctx.username}) catch |err| {
+            log.err("failed to allocate system message: {}", .{err});
+            return;
+        };
+        defer allocator.free(message);
+
+        GlobalContextManager.systemMessage(message);
+
+        const updatePacket = .{ .type = "update", .data = .{ .userCount = GlobalContextManager.contexts.items.len } };
 
         const jsonString = std.json.stringifyAlloc(allocator, updatePacket, .{}) catch |err| {
             log.err("error allocating memory for update packet: {}", .{err});
@@ -138,7 +160,7 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
 
         const updatePacket = .{ .type = "update", .data = .{ .userCount = contexts.len, .userLeaving = ctx.username } };
 
-        const allocator = std.heap.page_allocator;
+        const allocator = GlobalContextManager.allocator;
 
         const jsonString = std.json.stringifyAlloc(allocator, updatePacket, .{}) catch |err| {
             log.err("error allocating memory for update packet: {}", .{err});
@@ -155,9 +177,9 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
                         contexts[index + 1].permission = 2;
                     }
                 }
-                GlobalContextManager.allocator.free(ctx.username);
+                allocator.free(ctx.username);
                 const removedItem = GlobalContextManager.contexts.orderedRemove(index);
-                GlobalContextManager.allocator.destroy(removedItem);
+                allocator.destroy(removedItem);
                 break;
             }
         }
