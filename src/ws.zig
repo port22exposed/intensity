@@ -158,9 +158,17 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
 
         const contexts = GlobalContextManager.contexts.items;
 
-        const updatePacket = .{ .type = "update", .data = .{ .userCount = contexts.len, .userLeaving = ctx.username } };
+        const updatePacket = .{ .type = "update", .data = .{ .userCount = contexts.len } };
 
         const allocator = GlobalContextManager.allocator;
+
+        const message = std.fmt.allocPrint(allocator, "{s} has left the chat.", .{ctx.username}) catch |err| {
+            log.err("failed to allocate system message: {}", .{err});
+            return;
+        };
+        defer allocator.free(message);
+
+        GlobalContextManager.systemMessage(message);
 
         const jsonString = std.json.stringifyAlloc(allocator, updatePacket, .{}) catch |err| {
             log.err("error allocating memory for update packet: {}", .{err});
