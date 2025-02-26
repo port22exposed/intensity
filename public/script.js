@@ -72,17 +72,13 @@ window.onload = () => {
 
 	websocket.onmessage = function (e) {
 		const packet = JSON.parse(e.data)
+		const data = packet.data
 		if (packet.type == "update") {
-			const data = packet.data
 			if (data.userCount) {
 				usercount.innerText = data.userCount
 			}
-			if (data.userJoining) {
-				sendSystem(`${data.userJoining} has joined the chat.`)
-			}
-			if (data.userLeaving) {
-				sendSystem(`${data.userLeaving} has left the chat.`)
-			}
+		} else if (packet.type == "systemMessage") {
+			sendSystem(data.message)
 		}
 	}
 
