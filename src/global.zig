@@ -10,6 +10,6 @@ pub fn init_context_manager(allocator: std.mem.Allocator) *ws.ContextManager {
 }
 
 pub fn get_context_manager() *ws.ContextManager {
-    &GlobalContextManager.lock.lock(); // Lock upon return, caller must unlock when they are done!
+    _ = GlobalContextManager.lock.tryLock(); // Caller must unlock the GCM upon finishing with it
     return &GlobalContextManager;
 }

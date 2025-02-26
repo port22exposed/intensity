@@ -46,9 +46,6 @@ pub const ContextManager = struct {
     }
 
     pub fn availableName(self: *Self, username: []u8) !bool {
-        self.lock.lock();
-        defer self.lock.unlock();
-
         const lowercaseNameToCompare = try std.ascii.allocLowerString(self.allocator, username);
         defer self.allocator.free(lowercaseNameToCompare);
 
@@ -63,18 +60,13 @@ pub const ContextManager = struct {
     }
 
     pub fn newContext(self: *Self, username: []u8) !*Context {
-        self.lock.lock();
-        defer self.lock.unlock();
-
         if (try self.availableName(username)) {
-            const GlobalContextManager = global.get_context_manager();
-
             const ctx = try self.allocator.create(Context);
             ctx.* = .{
                 .username = username,
                 .channel = "comms",
                 .handle = null,
-                .permission = if (GlobalContextManager.contexts.items.len == 0) 2 else 0,
+                .permission = if (self.contexts.items.len == 0) 2 else 0,
                 // used in subscribe()
                 .subscribeArgs = .{
                     .channel = "comms",
@@ -115,6 +107,7 @@ fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
         ctx.handle = handle;
 
         const GlobalContextManager = global.get_context_manager();
+        defer GlobalContextManager.lock.unlock();
 
         const updatePacket = .{ .type = "update", .data = .{ .userCount = GlobalContextManager.contexts.items.len, .userJoining = ctx.username } };
 
@@ -132,11 +125,12 @@ fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
 }
 
 fn on_close_websocket(context: ?*Context, uuid: isize) void {
+    _ = uuid;
     const log = std.log.scoped(.websocket_close);
 
-    _ = uuid;
     if (context) |ctx| {
         const GlobalContextManager = global.get_context_manager();
+        defer GlobalContextManager.lock.unlock();
 
         const contexts = GlobalContextManager.contexts.items;
 

@@ -19,6 +19,7 @@ pub fn handle_message(
     _ = handle;
 
     const GlobalContextManager = global.get_context_manager();
+    defer GlobalContextManager.lock.unlock();
 
     const contexts = GlobalContextManager.contexts.items;
 
