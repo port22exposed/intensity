@@ -1,8 +1,14 @@
 import { updateScrollPosition, createMessageElement, isValidUsername, sendSystem } from "./utility.js"
 import { handleCommand } from "./commands.js"
 
+let websocket
+
 function exit() {
 	window.location.reload()
+}
+
+export function getWebSocket () {
+	return websocket
 }
 
 window.onload = () => {
@@ -14,7 +20,7 @@ window.onload = () => {
 
 	document.getElementById("name").innerText = username
 
-	var websocket = new WebSocket(
+	websocket = new WebSocket(
 		`${window.location.protocol === "https:" ? "wss:" : "ws:"}//${
 			window.location.host
 		}/?username=${username}`
