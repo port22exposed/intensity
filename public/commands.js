@@ -1,3 +1,4 @@
+import { getWebSocket } from "./index.js";
 import { sendSystem } from "./utility.js";
 
 let helpMessage = ""
@@ -28,7 +29,19 @@ const commands = {
         },
         kick: {
             args: "<username>",
-            description: "kicks a user from the group chat and bans their IP address"
+            description: "kicks a user from the group chat and bans their IP address",
+            execute: (args) => {
+                if (args && args[0]) {
+                    const ws = getWebSocket()
+                    ws.send(JSON.stringify({
+                        type: "command",
+                        name: "kick",
+                        target: args[0]
+                    }));
+                } else {
+                    sendSystem("failed to execute, provide a user to kick!")
+                }
+            }
         }
     },
     OWNER: {

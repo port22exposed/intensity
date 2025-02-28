@@ -52,14 +52,15 @@ window.onload = () => {
 
 	function send() {
 		const message = messagebox.value
+		messagelist.appendChild(createMessageElement(username, messagebox.value))
+		messagelist.scrollTop = messagelist.scrollHeight
+		updateScrollPosition()
 		if (message.startsWith("/")) {
 			const args = message.split(" ")
 			const command = args[0].substring(1)
-			handleCommand(command, args.shift())
+			args.shift()
+			handleCommand(command, args)
 		} else {
-			messagelist.appendChild(createMessageElement(username, messagebox.value))
-			messagelist.scrollTop = messagelist.scrollHeight
-			updateScrollPosition()
 			websocket.send(messagebox.value)
 		}
 		messagebox.value = ""

@@ -1,7 +1,7 @@
 const global = @import("./global.zig");
 const json = @import("./json.zig");
 
-const packetHandlers = .{ .command = @import("./wsPackets/command.zig"), .message = @import("./wsPackets/message.zig") };
+const packetHandlers = .{ .command = @import("./incoming/command.zig"), .message = @import("./incoming/message.zig") };
 
 const std = @import("std");
 const zap = @import("zap");
@@ -90,10 +90,13 @@ pub const ContextManager = struct {
         }
     }
 
-    pub fn systemMessage(self: *Self, payload: []u8) void {
+    pub fn systemMessage(self: *Self, options: struct {
+        payload: []const u8,
+        handle: ?WebSockets.WsHandle = null,
+    }) void {
         const log = std.log.scoped(.systemMessage);
 
-        const messagePacket = .{ .type = "systemMessage", .data = .{ .message = payload } };
+        const messagePacket = .{ .type = "systemMessage", .data = .{ .message = options.payload } };
 
         const jsonString = std.json.stringifyAlloc(self.allocator, messagePacket, .{}) catch |err| {
             log.err("error allocating memory for system message packet: {}", .{err});
@@ -101,7 +104,14 @@ pub const ContextManager = struct {
         };
         defer self.allocator.free(jsonString);
 
-        WebSocketHandler.publish(.{ .channel = "comms", .message = jsonString });
+        if (options.handle) |handle| {
+            WebSocketHandler.write(handle, jsonString, true) catch |err| {
+                log.err("failed writing to specified handle: {}", .{err});
+                return;
+            };
+        } else {
+            WebSocketHandler.publish(.{ .channel = "comms", .message = jsonString });
+        }
     }
 
     pub fn disconnect(self: *Self, context: Context, reason: enum { kick, left }) void {
@@ -133,7 +143,7 @@ fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
         };
         defer allocator.free(message);
 
-        GlobalContextManager.systemMessage(message);
+        GlobalContextManager.systemMessage(.{ .payload = message });
 
         const updatePacket = .{ .type = "update", .data = .{ .userCount = GlobalContextManager.contexts.items.len } };
 
@@ -168,7 +178,7 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
         };
         defer allocator.free(message);
 
-        GlobalContextManager.systemMessage(message);
+        GlobalContextManager.systemMessage(.{ .payload = message });
 
         const jsonString = std.json.stringifyAlloc(allocator, updatePacket, .{}) catch |err| {
             log.err("error allocating memory for update packet: {}", .{err});

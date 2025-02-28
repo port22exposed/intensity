@@ -16,8 +16,6 @@ pub fn handle_message(
     handle: WebSockets.WsHandle,
     object: std.json.ObjectMap,
 ) !void {
-    _ = handle;
-
     const GlobalContextManager = global.get_context_manager();
     defer GlobalContextManager.lock.unlock();
 
@@ -34,6 +32,7 @@ pub fn handle_message(
     switch (command) {
         .kick => {
             if (context.permission <= 1) {
+                GlobalContextManager.systemMessage(.{ .handle = handle, .payload = "insufficient permissions to run command" });
                 return error.InvalidPermissions;
             }
 
@@ -41,15 +40,20 @@ pub fn handle_message(
                 return error.InvalidCommandData;
             };
 
+            var found = false;
+
             for (contexts) |item| {
                 if (std.mem.eql(u8, target, item.username)) {
                     if (item.handle) |targetHandle| {
+                        found = true;
                         ws.WebSocketHandler.close(targetHandle);
                     }
                 }
             }
 
-            std.log.info("{s} was kicked by {s}", .{ target, context.username });
+            if (found) {
+                std.log.info("{s} was kicked by {s}", .{ target, context.username });
+            }
         },
     }
 }
