@@ -1,3 +1,14 @@
+const messagelist = document.getElementById("messagelist")
+
+export function updateScrollPosition () {
+	if (
+		messagelist.scrollTop + messagelist.clientHeight >=
+		messagelist.scrollHeight - messagelist.lastChild.clientHeight * 2
+	) {
+		messagelist.scrollTop = messagelist.scrollHeight
+	}
+}
+
 export function createMessageElement(user, text, className) {
 	const message = document.createElement("div")
 	message.className = className || "message"
@@ -10,6 +21,11 @@ export function createSystemMessageElement(text) {
 	message.className = "message info"
 	message.innerText = text
 	return message
+}
+
+export function sendSystem(text) {
+	messagelist.appendChild(createSystemMessageElement(text))
+	updateScrollPosition()
 }
 
 export function isValidUsername(username) {

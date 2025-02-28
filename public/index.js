@@ -1,4 +1,5 @@
-import { createMessageElement, createSystemMessageElement, isValidUsername } from "./utility.js"
+import { updateScrollPosition, createMessageElement, isValidUsername, sendSystem } from "./utility.js"
+import { handleCommand } from "./commands.js"
 
 function exit() {
 	window.location.reload()
@@ -27,19 +28,7 @@ window.onload = () => {
 	const messagebox = document.getElementById("message")
 	const sendbutton = document.getElementById("send")
 
-	function updateScrollPosition () {
-		if (
-			messagelist.scrollTop + messagelist.clientHeight >=
-			messagelist.scrollHeight - messagelist.lastChild.clientHeight * 2
-		) {
-			messagelist.scrollTop = messagelist.scrollHeight
-		}
-	}
-
-	function sendSystem(text) {
-		messagelist.appendChild(createSystemMessageElement(text))
-		updateScrollPosition()
-	}
+	messagebox.focus()
 
 	sendSystem("Type `/help` for commands!")
 
@@ -60,26 +49,7 @@ window.onload = () => {
 		if (message.startsWith("/")) {
 			const args = message.split(" ")
 			const command = args[0].substring(1)
-			if (command == "help") {
-				sendSystem(`Intensity Chat - Commands List
-
-EVERYONE:
-
-/help - sends you here...
-/host - displays the host in chat to you
-/status - displays your current status in chat to you
-
-OPERATOR:
-
-/decline <username> - declines a user's entry into the group chat
-/accept <username> - accepts a user's entry into the group chat
-/kick <username> - kicks a user from the group chat and bans their IP address
-
-OWNER:
-
-/op <username> - gives the user operator status
-/transfer <username> - transfers ownership of the group chat to another member`)
-			}
+			handleCommand(command, args.shift())
 		} else {
 			messagelist.appendChild(createMessageElement(username, messagebox.value))
 			messagelist.scrollTop = messagelist.scrollHeight
