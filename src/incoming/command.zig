@@ -52,7 +52,7 @@ pub fn handle_message(
             }
 
             if (found) {
-                std.log.info("{s} was kicked by {s}", .{ target, context.username });
+                std.log.info("{s} kicked {s}", .{ context.username, target });
             }
         },
     }
