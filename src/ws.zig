@@ -56,6 +56,7 @@ pub const ContextManager = struct {
                 return false;
             }
         }
+
         return true;
     }
 
@@ -112,12 +113,6 @@ pub const ContextManager = struct {
         } else {
             WebSocketHandler.publish(.{ .channel = "comms", .message = jsonString });
         }
-    }
-
-    pub fn disconnect(self: *Self, context: Context, reason: enum { kick, left }) void {
-        _ = self;
-        _ = context;
-        _ = reason;
     }
 };
 
