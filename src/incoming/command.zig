@@ -21,6 +21,8 @@ pub fn handle_message(
 
     const contexts = GlobalContextManager.contexts.items;
 
+    const allocator = GlobalContextManager.allocator;
+
     const commandName = json.getValue([]const u8, object, "name") catch {
         return error.NoCommandProvided;
     };
@@ -52,7 +54,13 @@ pub fn handle_message(
             }
 
             if (found) {
-                std.log.info("{s} kicked {s}", .{ context.username, target });
+                const notice = std.fmt.allocPrint(allocator, "{s} kicked {s}", .{ context.username, target }) catch |err| {
+                    std.log.err("failed to allocate kick notice message: {}", .{err});
+                    return;
+                };
+
+                GlobalContextManager.systemMessage(.{ .payload = notice });
+                std.log.info("{s}", .{notice});
             }
         },
     }
