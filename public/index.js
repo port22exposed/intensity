@@ -17,7 +17,7 @@ export function getWebSocket() {
 }
 
 function promptForUsername() {
-	let username = prompt(
+	const username = prompt(
 		"Enter a username to join!\n\nlength : 3-20, charset: alphanumeric + `_` + `-`, cannot be already in use (case insensitive detection)\n\n[WARNING]: The username is shared with the server unencrypted!",
 		Array.from(crypto.getRandomValues(new Uint8Array(2)), b => b.toString(16).padStart(2, '0')).join('')
 	)
@@ -31,39 +31,10 @@ function promptForUsername() {
 }
 
 window.onload = () => {
-	let username = promptForUsername()
-
-	document.getElementById("name").innerText = username
-
-	websocket = new WebSocket(
-		`${window.location.protocol === "https:" ? "wss:" : "ws:"}//${
-			window.location.host
-		}/?username=${username}`
-	)
-
-	websocket.onerror = exit
-	websocket.onclose = exit
-
 	const usercount = document.getElementById("usercount")
 	const messagelist = document.getElementById("messagelist")
 	const messagebox = document.getElementById("message")
 	const sendbutton = document.getElementById("send")
-
-	messagebox.focus()
-
-	sendSystem("Type `/help` for commands!")
-
-	websocket.onmessage = function (e) {
-		const packet = JSON.parse(e.data)
-		const data = packet.data
-		if (packet.type == "update") {
-			if (data.userCount) {
-				usercount.innerText = data.userCount
-			}
-		} else if (packet.type == "systemMessage") {
-			sendSystem(data.message)
-		}
-	}
 
 	function send() {
 		const message = messagebox.value
@@ -87,5 +58,33 @@ window.onload = () => {
 		}
 	})
 
+	const username = promptForUsername()
+
+	document.getElementById("name").innerText = username
+
+	websocket = new WebSocket(
+		`${window.location.protocol === "https:" ? "wss:" : "ws:"}//${
+			window.location.host
+		}/?username=${username}`
+	)
+
+	websocket.onerror = exit
+	websocket.onclose = exit
+	websocket.onmessage = function (e) {
+		const packet = JSON.parse(e.data)
+		const data = packet.data
+		if (packet.type == "update") {
+			if (data.userCount) {
+				usercount.innerText = data.userCount
+			}
+		} else if (packet.type == "systemMessage") {
+			sendSystem(data.message)
+		}
+	}
+
+	messagebox.focus()
+
+	sendSystem("Type `/help` for commands!")
+	
 	sendbutton.onclick = send
 }
