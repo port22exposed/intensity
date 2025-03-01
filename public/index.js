@@ -1,18 +1,26 @@
-import { updateScrollPosition, createMessageElement, isValidUsername, sendSystem } from "./utility.js"
+import {
+	updateScrollPosition,
+	createMessageElement,
+	isValidUsername,
+	sendSystem,
+} from "./utility.js"
 import { handleCommand } from "./commands.js"
 
 let websocket
 
 function exit() {
-	window.location.reload()
+	window.location.replace("https://google.com");
 }
 
-export function getWebSocket () {
+export function getWebSocket() {
 	return websocket
 }
 
 window.onload = () => {
-	const username = prompt("Enter a username to join!\n\n[WARNING]: The username is shared with the server unencrypted!", "user")
+	const username = prompt(
+		"Enter a username to join!\n\nlength : 3-20, charset: alphanumeric + `_` + `-`\n\n[WARNING]: The username is shared with the server unencrypted!",
+		Array.from(crypto.getRandomValues(new Uint8Array(2)), b => b.toString(16).padStart(2, '0')).join('')
+	)
 
 	if (!isValidUsername(username)) {
 		window.location.reload()
@@ -72,5 +80,5 @@ window.onload = () => {
 		}
 	})
 
-	sendbutton.onclick = send;
+	sendbutton.onclick = send
 }
