@@ -58,6 +58,7 @@ pub fn handle_message(
                     std.log.err("failed to allocate kick notice message: {}", .{err});
                     return;
                 };
+                defer allocator.free(notice);
 
                 GlobalContextManager.systemMessage(.{ .payload = notice });
                 std.log.info("{s}", .{notice});
