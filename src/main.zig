@@ -16,7 +16,10 @@ fn on_request(r: zap.Request) void {
 
 fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
     const GlobalContextManager = global.get_context_manager();
-    defer GlobalContextManager.lock.unlock();
+    defer GlobalContextManager.mutex.unlock();
+
+    const GlobalState = global.get_state();
+    defer GlobalState.mutex.unlock();
 
     const log = std.log.scoped(.websocket_upgrade);
 
@@ -59,8 +62,6 @@ fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
     log.debug("successful upgrade for user: {s}", .{ownedUsername});
 }
 
-var GlobalState: State = undefined;
-
 const WebSocketHandler = ws.WebSocketHandler;
 
 pub fn main() !void {
@@ -74,11 +75,11 @@ pub fn main() !void {
         if (deinit_status == .leak) std.log.debug("GPA detected a memory leak!", .{});
     }
 
-    GlobalState = State.init(allocator);
-    defer GlobalState.deinit();
-
     var GlobalContextManager = global.init_context_manager(allocator);
     defer GlobalContextManager.deinit();
+
+    var GlobalState = global.init_state(allocator);
+    defer GlobalState.deinit();
 
     var args_it = try std.process.argsWithAllocator(allocator);
     defer args_it.deinit();

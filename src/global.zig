@@ -1,8 +1,10 @@
 const std = @import("std");
 
-var GlobalContextManager: ws.ContextManager = undefined;
-
+const state = @import("./state.zig").State;
 const ws = @import("./ws.zig");
+
+var GlobalContextManager: ws.ContextManager = undefined;
+var GlobalState: state = undefined;
 
 pub fn init_context_manager(allocator: std.mem.Allocator) *ws.ContextManager {
     GlobalContextManager = ws.ContextManager.init(allocator);
@@ -10,6 +12,16 @@ pub fn init_context_manager(allocator: std.mem.Allocator) *ws.ContextManager {
 }
 
 pub fn get_context_manager() *ws.ContextManager {
-    GlobalContextManager.lock.lock(); // Caller must unlock the GCM upon finishing with it
+    GlobalContextManager.mutex.lock(); // Caller must unlock upon finishing with it
     return &GlobalContextManager;
+}
+
+pub fn init_state(allocator: std.mem.Allocator) *state {
+    GlobalState = state.init(allocator);
+    return &GlobalState;
+}
+
+pub fn get_state() *state {
+    GlobalState.mutex.lock(); // Caller must unlock upon finishing with it
+    return &GlobalState;
 }

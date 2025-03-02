@@ -29,9 +29,6 @@ pub const State = struct {
     }
 
     pub fn is_ip_blocked(self: *Self, r: zap.Request) bool {
-        self.mutex.lock();
-        defer self.mutex.unlock();
-
         const questionableIp = get_ip(r);
 
         if (questionableIp) |clientIp| {
@@ -46,9 +43,6 @@ pub const State = struct {
     }
 
     pub fn block_ip(self: *Self, r: zap.Request) void {
-        self.mutex.lock();
-        defer self.mutex.unlock();
-
         const questionableIp = get_ip(r);
 
         if (questionableIp) |clientIp| {

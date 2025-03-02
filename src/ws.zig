@@ -24,7 +24,7 @@ pub const ContextList = std.ArrayList(*Context);
 
 pub const ContextManager = struct {
     allocator: std.mem.Allocator,
-    lock: std.Thread.Mutex = .{},
+    mutex: std.Thread.Mutex = .{},
     contexts: ContextList = undefined,
 
     const Self = @This();
@@ -128,7 +128,7 @@ fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
         ctx.handle = handle;
 
         const GlobalContextManager = global.get_context_manager();
-        defer GlobalContextManager.lock.unlock();
+        defer GlobalContextManager.mutex.unlock();
 
         const allocator = GlobalContextManager.allocator;
 
@@ -159,7 +159,7 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
 
     if (context) |ctx| {
         const GlobalContextManager = global.get_context_manager();
-        defer GlobalContextManager.lock.unlock();
+        defer GlobalContextManager.mutex.unlock();
 
         const contexts = GlobalContextManager.contexts.items;
 

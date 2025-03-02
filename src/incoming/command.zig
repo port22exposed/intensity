@@ -17,7 +17,7 @@ pub fn handle_message(
     object: std.json.ObjectMap,
 ) !void {
     const GlobalContextManager = global.get_context_manager();
-    defer GlobalContextManager.lock.unlock();
+    defer GlobalContextManager.mutex.unlock();
 
     const contexts = GlobalContextManager.contexts.items;
 
