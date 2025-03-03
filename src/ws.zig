@@ -11,6 +11,7 @@ pub const WebSocketHandler = WebSockets.Handler(Context);
 
 pub const Context = struct {
     username: []const u8,
+    ip: []const u8,
     channel: []const u8,
     handle: ?WebSockets.WsHandle,
     permission: u8, // 0 = regular user, 1 = operator, 2 = owner
@@ -41,6 +42,7 @@ pub const ContextManager = struct {
     pub fn deinit(self: *Self) void {
         for (self.contexts.items) |ctx| {
             self.allocator.free(ctx.username);
+            self.allocator.free(ctx.ip);
         }
         self.contexts.deinit();
     }
@@ -79,13 +81,17 @@ pub const ContextManager = struct {
         return true;
     }
 
-    pub fn newContext(self: *Self, username: []u8) !*Context {
-        errdefer self.allocator.free(username);
+    pub fn newContext(self: *Self, username: []u8, ip: []u8) !*Context {
+        errdefer {
+            self.allocator.free(username);
+            self.allocator.free(ip);
+        }
 
         if (self.availableName(username)) {
             const ctx = try self.allocator.create(Context);
             ctx.* = .{
                 .username = username,
+                .ip = ip,
                 .channel = "comms",
                 .handle = null,
                 .permission = if (self.contexts.items.len == 0) 2 else 0,
@@ -210,6 +216,7 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
                     }
                 }
                 allocator.free(ctx.username);
+                allocator.free(ctx.ip);
                 const removedItem = GlobalContextManager.contexts.orderedRemove(index);
                 allocator.destroy(removedItem);
                 break;

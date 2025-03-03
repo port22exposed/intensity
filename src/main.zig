@@ -21,6 +21,8 @@ fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
     const GlobalState = global.get_state();
     defer GlobalState.mutex.unlock();
 
+    const allocator = GlobalContextManager.allocator;
+
     const log = std.log.scoped(.websocket_upgrade);
 
     if (!std.mem.eql(u8, target_protocol, "websocket")) {
@@ -48,12 +50,18 @@ fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
         return validation.deny_request(r);
     }
 
-    const ownedUsername = GlobalContextManager.allocator.dupe(u8, username) catch |err| {
+    const ownedUsername = allocator.dupe(u8, username) catch |err| {
         std.log.err("failed to clone the username '{s}' into owned memory: {}", .{ username, err });
         return;
     };
 
-    var context = GlobalContextManager.newContext(ownedUsername) catch |err| {
+    const ownedIp = allocator.dupe(u8, ip) catch |err| {
+        std.log.err("failed to clone the ip address '{s}' into owned memory: {}", .{ ip, err });
+        allocator.free(ownedUsername); // somehow username was allocated but the IP address wasn't
+        return;
+    };
+
+    var context = GlobalContextManager.newContext(ownedUsername, ownedIp) catch |err| {
         log.err("error creating context: {any}", .{err});
         return validation.deny_request(r);
     };
