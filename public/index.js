@@ -9,7 +9,7 @@ import { handleCommand } from "./commands.js"
 let websocket
 
 function exit() {
-	window.location.replace("https://google.com");
+	window.location.replace("https://example.com");
 }
 
 export function getWebSocket() {
