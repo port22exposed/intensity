@@ -45,16 +45,35 @@ pub const ContextManager = struct {
         self.contexts.deinit();
     }
 
-    pub fn availableName(self: *Self, username: []u8) !bool {
-        const lowercaseNameToCompare = try std.ascii.allocLowerString(self.allocator, username);
+    pub fn getContext(self: *Self, username: []u8) ?*Context {
+        const log = std.log.scoped(.get_context);
+
+        const lowercaseNameToCompare = std.ascii.allocLowerString(self.allocator, username) catch |err| {
+            log.err("failed to allocate lower string copy of username `{s}`: {}", .{ username, err });
+            return null;
+        };
         defer self.allocator.free(lowercaseNameToCompare);
 
         for (self.contexts.items) |context| {
-            const lowercaseName = try std.ascii.allocLowerString(self.allocator, context.username);
+            const lowercaseName = std.ascii.allocLowerString(self.allocator, context.username) catch |err| {
+                log.err("failed to allocate lower string copy of username `{s}`: {}", .{ username, err });
+                continue;
+            };
             defer self.allocator.free(lowercaseName);
+
             if (std.mem.eql(u8, lowercaseName, lowercaseNameToCompare)) {
-                return false;
+                return context;
             }
+        }
+
+        return null;
+    }
+
+    pub fn availableName(self: *Self, username: []u8) bool {
+        const context = self.getContext(username);
+
+        if (context) |_| {
+            return false;
         }
 
         return true;
@@ -63,7 +82,7 @@ pub const ContextManager = struct {
     pub fn newContext(self: *Self, username: []u8) !*Context {
         errdefer self.allocator.free(username);
 
-        if (try self.availableName(username)) {
+        if (self.availableName(username)) {
             const ctx = try self.allocator.create(Context);
             ctx.* = .{
                 .username = username,
@@ -95,7 +114,7 @@ pub const ContextManager = struct {
         payload: []const u8,
         handle: ?WebSockets.WsHandle = null,
     }) void {
-        const log = std.log.scoped(.systemMessage);
+        const log = std.log.scoped(.system_message);
 
         const messagePacket = .{ .type = "systemMessage", .data = .{ .message = options.payload } };
 
