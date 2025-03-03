@@ -28,35 +28,23 @@ pub const State = struct {
         self.blocked_ips.deinit();
     }
 
-    pub fn is_ip_blocked(self: *Self, r: zap.Request) bool {
-        const questionableIp = get_ip(r);
-
-        if (questionableIp) |clientIp| {
-            for (self.blocked_ips.items) |ip| {
-                if (std.mem.eql(u8, ip, clientIp)) {
-                    return true;
-                }
+    pub fn is_ip_blocked(self: *Self, clientIp: []const u8) bool {
+        for (self.blocked_ips.items) |ip| {
+            if (std.mem.eql(u8, ip, clientIp)) {
+                return true;
             }
         }
 
         return false;
     }
 
-    pub fn block_ip(self: *Self, r: zap.Request) void {
-        const questionableIp = get_ip(r);
-
-        if (questionableIp) |clientIp| {
-            const ownedIp = self.allocator.dupe(u8, clientIp) catch |err| {
-                std.log.err("failed to convert the user's IP address into owned memory: {}", .{err});
-                return;
-            };
-            self.blocked_ips.append(ownedIp) catch |err| {
-                std.log.err("failed to append client IP to blocked_ips array: {}", .{err});
-            };
-        } else {
-            std.log.err("failed to obtain client IP address from headers!", .{});
-        }
-
-        return;
+    pub fn block_ip(self: *Self, clientIp: []const u8) void {
+        const ownedIp = self.allocator.dupe(u8, clientIp) catch |err| {
+            std.log.err("failed to clone the user's IP address in memory: {}", .{err});
+            return;
+        };
+        self.blocked_ips.append(ownedIp) catch |err| {
+            std.log.err("failed to append client IP to blocked_ips array: {}", .{err});
+        };
     }
 };

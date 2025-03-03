@@ -28,7 +28,12 @@ fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
         return validation.deny_request(r);
     }
 
-    if (GlobalState.is_ip_blocked(r)) {
+    const ip = validation.get_ip(r) orelse {
+        log.warn("received illegal request: unable to obtain IP address from headers", .{});
+        return validation.deny_request(r);
+    };
+
+    if (GlobalState.is_ip_blocked(ip)) {
         log.warn("received illegal request: IP is blocked", .{});
         return validation.deny_request(r);
     }

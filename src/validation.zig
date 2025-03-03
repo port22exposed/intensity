@@ -23,3 +23,9 @@ pub fn is_valid_user(username: []const u8) bool {
 
     return true;
 }
+
+pub fn get_ip(r: zap.Request) ?[]const u8 {
+    const ip = r.getHeader("cf-connecting-ip") orelse r.getHeader("x-forwarded-for") orelse r.getHeader("x-real-ip") orelse null;
+
+    return ip;
+}
