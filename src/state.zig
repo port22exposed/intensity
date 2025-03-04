@@ -3,12 +3,6 @@ const zap = @import("zap");
 
 const validation = @import("./validation.zig");
 
-fn get_ip(r: zap.Request) ?[]const u8 {
-    const ip = r.getHeader("cf-connecting-ip") orelse r.getHeader("x-forwarded-for") orelse r.getHeader("x-real-ip") orelse null;
-
-    return ip;
-}
-
 pub const State = struct {
     allocator: std.mem.Allocator,
     mutex: std.Thread.Mutex,
@@ -25,6 +19,9 @@ pub const State = struct {
     }
 
     pub fn deinit(self: *Self) void {
+        for (self.blocked_ips.items) |ip| {
+            self.allocator.free(ip);
+        }
         self.blocked_ips.deinit();
     }
 
@@ -43,8 +40,11 @@ pub const State = struct {
             std.log.err("failed to clone the user's IP address in memory: {}", .{err});
             return;
         };
+
         self.blocked_ips.append(ownedIp) catch |err| {
             std.log.err("failed to append client IP to blocked_ips array: {}", .{err});
+            self.allocator.free(ownedIp);
+            return;
         };
     }
 };

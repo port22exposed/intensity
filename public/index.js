@@ -9,7 +9,7 @@ import { handleCommand } from "./commands.js"
 let websocket
 
 function exit() {
-	window.location.replace("https://example.com");
+	window.location.replace("https://example.com")
 }
 
 export function getWebSocket() {
@@ -19,7 +19,9 @@ export function getWebSocket() {
 function promptForUsername() {
 	const username = prompt(
 		"Enter a username to join!\n\nlength : 3-20, charset: alphanumeric + `_` + `-`, cannot be already in use (case insensitive detection)\n\n[WARNING]: The username is shared with the server unencrypted!",
-		Array.from(crypto.getRandomValues(new Uint8Array(2)), b => b.toString(16).padStart(2, '0')).join('')
+		Array.from(crypto.getRandomValues(new Uint8Array(2)), (b) =>
+			b.toString(16).padStart(2, "0")
+		).join("")
 	)
 
 	if (!isValidUsername(username)) {
@@ -85,6 +87,6 @@ window.onload = () => {
 	messagebox.focus()
 
 	sendSystem("Type `/help` for commands!")
-	
+
 	sendbutton.onclick = send
 }

@@ -19,7 +19,8 @@ pub fn handle_message(
     const GlobalContextManager = global.get_context_manager();
     defer GlobalContextManager.mutex.unlock();
 
-    const contexts = GlobalContextManager.contexts.items;
+    const GlobalState = global.get_state();
+    defer GlobalState.mutex.unlock();
 
     const allocator = GlobalContextManager.allocator;
 
@@ -42,26 +43,22 @@ pub fn handle_message(
                 return error.InvalidCommandData;
             };
 
-            var found = false;
+            const questionableTargetContext = GlobalContextManager.getContext(target);
 
-            for (contexts) |item| {
-                if (std.mem.eql(u8, target, item.username)) {
-                    if (item.handle) |targetHandle| {
-                        found = true;
-                        ws.WebSocketHandler.close(targetHandle);
-                    }
+            if (questionableTargetContext) |targetContext| {
+                if (targetContext.handle) |targetHandle| {
+                    GlobalState.block_ip(targetContext.ip);
+                    ws.WebSocketHandler.close(targetHandle);
+
+                    const notice = std.fmt.allocPrint(allocator, "{s} kicked {s}", .{ context.username, target }) catch |err| {
+                        std.log.err("failed to allocate kick notice message: {}", .{err});
+                        return;
+                    };
+                    defer allocator.free(notice);
+
+                    GlobalContextManager.systemMessage(.{ .payload = notice });
+                    std.log.info("{s}", .{notice});
                 }
-            }
-
-            if (found) {
-                const notice = std.fmt.allocPrint(allocator, "{s} kicked {s}", .{ context.username, target }) catch |err| {
-                    std.log.err("failed to allocate kick notice message: {}", .{err});
-                    return;
-                };
-                defer allocator.free(notice);
-
-                GlobalContextManager.systemMessage(.{ .payload = notice });
-                std.log.info("{s}", .{notice});
             }
         },
     }

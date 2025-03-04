@@ -68,7 +68,8 @@ fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
 
     WebSocketHandler.upgrade(r.h, &context.settings) catch |err| {
         log.err("error in WebSocketHandler.upgrade(): {any}", .{err});
-        GlobalContextManager.allocator.free(ownedUsername);
+        allocator.free(ownedUsername);
+        allocator.free(ownedIp);
         return validation.deny_request(r);
     };
 

@@ -47,7 +47,7 @@ pub const ContextManager = struct {
         self.contexts.deinit();
     }
 
-    pub fn getContext(self: *Self, username: []u8) ?*Context {
+    pub fn getContext(self: *Self, username: []const u8) ?*Context {
         const log = std.log.scoped(.get_context);
 
         const lowercaseNameToCompare = std.ascii.allocLowerString(self.allocator, username) catch |err| {
