@@ -14,7 +14,9 @@ fn on_request(r: zap.Request) void {
     r.sendBody("<html><body><h1>404 - File not found</h1></body></html>") catch return;
 }
 
-fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
+const UpgradeError = error{ IllegalProtocol, IllegalRequest, AllocationException, ContextCreationException, WebSocketHandlerUpgradeFail };
+
+fn internal_upgrade(r: zap.Request, target_protocol: []const u8) UpgradeError!void {
     const GlobalContextManager = global.get_context_manager();
     defer GlobalContextManager.mutex.unlock();
 
@@ -23,57 +25,59 @@ fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
 
     const allocator = GlobalContextManager.allocator;
 
-    const log = std.log.scoped(.websocket_upgrade);
-
     if (!std.mem.eql(u8, target_protocol, "websocket")) {
-        log.warn("received illegal protocol: {s}", .{target_protocol});
-        return validation.deny_request(r);
+        return error.IllegalProtocol;
     }
 
     const ip = validation.get_ip(r) orelse {
-        log.warn("received illegal request: unable to obtain IP address from headers", .{});
-        return validation.deny_request(r);
+        return error.IllegalRequest;
     };
 
     if (GlobalState.is_ip_blocked(ip)) {
-        log.warn("received illegal request: IP is blocked", .{});
-        return validation.deny_request(r);
+        return error.IllegalRequest;
     }
 
     const username = r.getParamSlice("username") orelse {
-        log.warn("received illegal request: no username provided", .{});
-        return validation.deny_request(r);
+        return error.IllegalRequest;
     };
 
     if (!validation.is_valid_user(username)) {
-        log.warn("received illegal request: username '{s}' is invalid", .{username});
-        return validation.deny_request(r);
+        return error.IllegalRequest;
     }
 
-    const ownedUsername = allocator.dupe(u8, username) catch |err| {
-        std.log.err("failed to clone the username '{s}' into owned memory: {}", .{ username, err });
-        return;
+    const ownedUsername = allocator.dupe(u8, username) catch {
+        return error.AllocationException;
     };
 
-    const ownedIp = allocator.dupe(u8, ip) catch |err| {
-        std.log.err("failed to clone the ip address '{s}' into owned memory: {}", .{ ip, err });
+    const ownedIp = allocator.dupe(u8, ip) catch {
         allocator.free(ownedUsername); // somehow username was allocated but the IP address wasn't
-        return;
+        return error.AllocationException;
     };
 
-    var context = GlobalContextManager.newContext(ownedUsername, ownedIp) catch |err| {
-        log.err("error creating context: {any}", .{err});
-        return validation.deny_request(r);
+    var context = GlobalContextManager.newContext(ownedUsername, ownedIp) catch {
+        return error.ContextCreationException;
     };
 
-    WebSocketHandler.upgrade(r.h, &context.settings) catch |err| {
-        log.err("error in WebSocketHandler.upgrade(): {any}", .{err});
+    WebSocketHandler.upgrade(r.h, &context.settings) catch {
         allocator.free(ownedUsername);
         allocator.free(ownedIp);
+        return error.WebSocketHandlerUpgradeFail;
+    };
+}
+
+fn on_upgrade(r: zap.Request, target_protocol: []const u8) void {
+    const log = std.log.scoped(.websocket_upgrade);
+
+    internal_upgrade(r, target_protocol) catch |err| {
+        switch (err) {
+            error.IllegalProtocol => log.warn("received illegal protocol: {s}", .{target_protocol}),
+            error.IllegalRequest => log.warn("received illegal request", .{}),
+            error.AllocationException => log.err("failed to allocate memory", .{}),
+            error.ContextCreationException => log.err("error creating context", .{}),
+            error.WebSocketHandlerUpgradeFail => log.err("error in WebSocketHandler.upgrade(): {any}", .{err}),
+        }
         return validation.deny_request(r);
     };
-
-    log.debug("successful upgrade for user: {s}", .{ownedUsername});
 }
 
 const WebSocketHandler = ws.WebSocketHandler;
