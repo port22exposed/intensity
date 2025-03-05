@@ -47,6 +47,17 @@ pub const ContextManager = struct {
         self.contexts.deinit();
     }
 
+    pub fn deleteContext(self: *Self, index: usize) !void {
+        if (index >= self.contexts.items.len) {
+            return error.IndexOutOfBounds;
+        }
+
+        const ctx = self.contexts.orderedRemove(index);
+        self.allocator.free(ctx.username);
+        self.allocator.free(ctx.ip);
+        self.allocator.destroy(ctx);
+    }
+
     pub fn getContext(self: *Self, username: []const u8) ?*Context {
         const log = std.log.scoped(.get_context);
 
@@ -215,10 +226,7 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
                         contexts[index + 1].permission = 2;
                     }
                 }
-                allocator.free(ctx.username);
-                allocator.free(ctx.ip);
-                const removedItem = GlobalContextManager.contexts.orderedRemove(index);
-                allocator.destroy(removedItem);
+                GlobalContextManager.deleteContext(index);
                 break;
             }
         }
