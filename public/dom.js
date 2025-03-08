@@ -1,0 +1,5 @@
+export const usercount = document.getElementById("usercount")
+export const messagelist = document.getElementById("messagelist")
+export const messagebox = document.getElementById("message")
+export const sendbutton = document.getElementById("send")
+export const clientUsername = document.getElementById("name")

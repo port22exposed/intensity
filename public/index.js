@@ -5,6 +5,8 @@ import {
 	sendSystem,
 } from "./utility.js"
 import { handleCommand } from "./commands.js"
+import { onmessage } from "./packets.js"
+import * as dom from "./dom.js"
 
 let websocket
 
@@ -33,15 +35,10 @@ function promptForUsername() {
 }
 
 window.onload = () => {
-	const usercount = document.getElementById("usercount")
-	const messagelist = document.getElementById("messagelist")
-	const messagebox = document.getElementById("message")
-	const sendbutton = document.getElementById("send")
-
 	function send() {
-		const message = messagebox.value
-		messagelist.appendChild(createMessageElement(username, messagebox.value))
-		messagelist.scrollTop = messagelist.scrollHeight
+		const message = dom.messagebox.value
+		dom.messagelist.appendChild(createMessageElement(username, dom.messagebox.value))
+		dom.messagelist.scrollTop = dom.messagelist.scrollHeight
 		updateScrollPosition()
 		if (message.startsWith("/")) {
 			const args = message.split(" ")
@@ -49,12 +46,12 @@ window.onload = () => {
 			args.shift()
 			handleCommand(command, args)
 		} else {
-			websocket.send(messagebox.value)
+			websocket.send(dom.messagebox.value)
 		}
-		messagebox.value = ""
+		dom.messagebox.value = ""
 	}
 
-	messagebox.addEventListener("keydown", (e) => {
+	dom.messagebox.addEventListener("keydown", (e) => {
 		if (e.key === "Enter") {
 			send()
 		}
@@ -62,7 +59,7 @@ window.onload = () => {
 
 	const username = promptForUsername()
 
-	document.getElementById("name").innerText = username
+	dom.clientUsername.innerText = username
 
 	websocket = new WebSocket(
 		`${window.location.protocol === "https:" ? "wss:" : "ws:"}//${
@@ -74,9 +71,9 @@ window.onload = () => {
 	websocket.onclose = exit
 	websocket.onmessage = onmessage
 
-	messagebox.focus()
+	dom.messagebox.focus()
 
 	sendSystem("Type `/help` for commands!")
 
-	sendbutton.onclick = send
+	dom.sendbutton.onclick = send
 }

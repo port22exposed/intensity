@@ -125,7 +125,6 @@ button:disabled {
 }
 
 .info {
-	font-style: italic;
 	color: var(--subtext0);
 	background-color: var(--surface0) !important;
 
