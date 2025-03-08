@@ -72,17 +72,7 @@ window.onload = () => {
 
 	websocket.onerror = exit
 	websocket.onclose = exit
-	websocket.onmessage = function (e) {
-		const packet = JSON.parse(e.data)
-		const data = packet.data
-		if (packet.type == "update") {
-			if (data.userCount) {
-				usercount.innerText = data.userCount
-			}
-		} else if (packet.type == "systemMessage") {
-			sendSystem(data.message)
-		}
-	}
+	websocket.onmessage = onmessage
 
 	messagebox.focus()
 
