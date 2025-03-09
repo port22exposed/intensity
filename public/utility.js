@@ -16,7 +16,7 @@ export function createMessageElement(user, text, className) {
 	message.className = className || "message"
 	const name = document.createElement("span")
 	name.className = "name"
-	name.innerText = `${user}: `
+	name.innerText = `${user} `
 	const textSpan = document.createElement("span")
 	textSpan.innerText = text
 	message.appendChild(name)
@@ -25,7 +25,7 @@ export function createMessageElement(user, text, className) {
 }
 
 export function createSystemMessageElement(text) {
-	return createMessageElement("SYSTEM", text, "message info")
+	return createMessageElement("[SYSTEM]:", text, "message info")
 }
 
 export function sendSystem(text) {
