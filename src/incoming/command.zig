@@ -10,6 +10,8 @@ const ws = @import("../ws.zig");
 const CommandName = enum {
     transfer,
     status,
+    accept,
+    deny,
     host,
     deop,
     ban,
@@ -39,6 +41,28 @@ pub fn handle_message(
     const target = json.getValue([]const u8, object, "target") catch "";
 
     switch (command) {
+        .transfer => {
+            if (context.permission < 2) {
+                GlobalContextManager.systemMessage(.{ .context = context, .message = "insufficient permissions to run command" });
+                return error.InvalidPermissions;
+            }
+
+            const questionableTargetContext = GlobalContextManager.getContext(target);
+
+            if (questionableTargetContext) |targetContext| {
+                targetContext.permission = 2;
+                context.permission = 1;
+
+                const notice = std.fmt.allocPrint(allocator, "{s} transferred ownership of the group to {s}", .{ context.username, target }) catch |err| {
+                    std.log.err("failed to allocate notice message: {}", .{err});
+                    return;
+                };
+                defer allocator.free(notice);
+
+                GlobalContextManager.systemMessage(.{ .message = notice });
+                std.log.info("{s}", .{notice});
+            }
+        },
         .status => {
             const notice = std.fmt.allocPrint(allocator, "your permission level is: {}", .{context.permission}) catch |err| {
                 std.log.err("failed to allocate notice message: {}", .{err});
@@ -101,7 +125,7 @@ pub fn handle_message(
             if (questionableTargetContext) |targetContext| {
                 targetContext.permission = 1;
 
-                const notice = std.fmt.allocPrint(allocator, "{s} was made an operator by {s}", .{ target, context.username }) catch |err| {
+                const notice = std.fmt.allocPrint(allocator, "{s} made {s} an operator!", .{ context.username, target }) catch |err| {
                     std.log.err("failed to allocate notice message: {}", .{err});
                     return;
                 };
@@ -123,28 +147,6 @@ pub fn handle_message(
                 targetContext.permission = 0;
 
                 const notice = std.fmt.allocPrint(allocator, "{s} removed operator status from {s}", .{ context.username, target }) catch |err| {
-                    std.log.err("failed to allocate notice message: {}", .{err});
-                    return;
-                };
-                defer allocator.free(notice);
-
-                GlobalContextManager.systemMessage(.{ .message = notice });
-                std.log.info("{s}", .{notice});
-            }
-        },
-        .transfer => {
-            if (context.permission < 2) {
-                GlobalContextManager.systemMessage(.{ .context = context, .message = "insufficient permissions to run command" });
-                return error.InvalidPermissions;
-            }
-
-            const questionableTargetContext = GlobalContextManager.getContext(target);
-
-            if (questionableTargetContext) |targetContext| {
-                targetContext.permission = 2;
-                context.permission = 1;
-
-                const notice = std.fmt.allocPrint(allocator, "{s} transferred ownership of the group to {s}", .{ context.username, target }) catch |err| {
                     std.log.err("failed to allocate notice message: {}", .{err});
                     return;
                 };
