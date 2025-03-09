@@ -166,33 +166,6 @@ pub const ContextManager = struct {
         context: ?*Context = null,
     }) void {
         self.sendPacket(.{ .type = "systemMessage", .data = .{ .message = options.message } }, options.context);
-        // const log = std.log.scoped(.system_message);
-
-        // const messagePacket = .{ .type = "systemMessage", .data = .{ .message = options.message } };
-
-        // const jsonString = std.json.stringifyAlloc(self.allocator, messagePacket, .{}) catch |err| {
-        //     log.err("error allocating memory for system message packet: {}", .{err});
-        //     return;
-        // };
-        // defer self.allocator.free(jsonString);
-
-        // if (options.handle) |handle| {
-        //     WebSocketHandler.write(handle, jsonString, true) catch |err| {
-        //         log.err("failed writing to specified handle: {}", .{err});
-        //         return;
-        //     };
-        // } else {
-        //     for (self.contexts.items) |context| {
-        //         if (context.handle) {
-        //             if (context.accepted) {
-        //                 WebSocketHandler.write(context.handle, jsonString, true) catch |err| {
-        //                     log.err("failed writing to specified handle: {}", .{err});
-        //                     return;
-        //                 };
-        //             }
-        //         }
-        //     }
-        // }
     }
 };
 
@@ -220,16 +193,7 @@ fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
 
         GlobalContextManager.systemMessage(.{ .message = message });
 
-        const updatePacket = .{ .type = "update", .data = .{ .userCount = GlobalContextManager.contexts.items.len } };
-
-        const jsonString = std.json.stringifyAlloc(allocator, updatePacket, .{}) catch |err| {
-            log.err("error allocating memory for update packet: {}", .{err});
-            WebSocketHandler.close(handle);
-            return;
-        };
-        defer allocator.free(jsonString);
-
-        WebSocketHandler.publish(.{ .channel = ctx.channel, .message = jsonString });
+        GlobalContextManager.sendPacket(.{ .type = "update", .data = .{ .userCount = GlobalContextManager.contexts.items.len } }, null);
     }
 }
 
@@ -243,8 +207,6 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
 
         const contexts = GlobalContextManager.contexts.items;
 
-        const updatePacket = .{ .type = "update", .data = .{ .userCount = contexts.len - 1 } };
-
         const allocator = GlobalContextManager.allocator;
 
         const message = std.fmt.allocPrint(allocator, "{s} has left the chat.", .{ctx.username}) catch |err| {
@@ -255,13 +217,7 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
 
         GlobalContextManager.systemMessage(.{ .message = message });
 
-        const jsonString = std.json.stringifyAlloc(allocator, updatePacket, .{}) catch |err| {
-            log.err("error allocating memory for update packet: {}", .{err});
-            return;
-        };
-        defer allocator.free(jsonString);
-
-        WebSocketHandler.publish(.{ .channel = ctx.channel, .message = jsonString });
+        GlobalContextManager.sendPacket(.{ .type = "update", .data = .{ .userCount = contexts.len - 1 } }, null);
 
         for (contexts, 0..) |item, index| {
             if (item == ctx) {
@@ -290,6 +246,10 @@ fn handle_websocket_message(
     const log = std.log.scoped(.websocket_message);
 
     if (context) |ctx| {
+        if (ctx.accepted != false) {
+            return;
+        }
+
         const allocator = std.heap.page_allocator;
 
         // ensure the packet isn't malformed
