@@ -11,8 +11,8 @@ const CommandName = enum {
     transfer,
     status,
     host,
-    kick,
     deop,
+    ban,
     op,
 };
 
@@ -61,7 +61,7 @@ pub fn handle_message(
                 }
             }
         },
-        .kick => {
+        .ban => {
             if (context.permission < 1) {
                 GlobalContextManager.systemMessage(.{ .context = context, .message = "insufficient permissions to run command" });
                 return error.InvalidPermissions;

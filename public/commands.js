@@ -21,9 +21,9 @@ const commands = {
 			targetArg: true,
 			description: "denies a user's entry into the group chat",
 		},
-		kick: {
+		ban: {
 			targetArg: true,
-			description: "kicks a user from the group chat and bans their IP address",
+			description: "bans the user from the group chat via their IP address",
 		},
 	},
 	OWNER: {
