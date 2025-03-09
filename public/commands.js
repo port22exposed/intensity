@@ -88,7 +88,6 @@ export function handleCommand(name, args) {
 				JSON.stringify({
 					type: "command",
 					name: name,
-					target: "",
 				})
 			)
 		}
