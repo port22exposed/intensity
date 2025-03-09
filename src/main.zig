@@ -60,6 +60,13 @@ fn internal_upgrade(r: zap.Request, target_protocol: []const u8) UpgradeError!vo
 
     if (GlobalContextManager.contexts.items.len <= 1) {
         context.accepted = true;
+    } else {
+        const message = std.fmt.allocPrint(allocator, "{s} is awaiting approval to join!", .{ownedUsername}) catch {
+            return error.AllocationException;
+        };
+        defer allocator.free(message);
+
+        GlobalContextManager.systemMessage(.{ .message = message });
     }
 
     WebSocketHandler.upgrade(r.h, &context.settings) catch {

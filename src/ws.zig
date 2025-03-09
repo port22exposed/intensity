@@ -59,6 +59,18 @@ pub const ContextManager = struct {
         self.allocator.destroy(ctx);
     }
 
+    pub fn clientsConnected(self: *Self) usize {
+        var amount: usize = 0;
+
+        for (self.contexts.items) |ctx| {
+            if (ctx.accepted) {
+                amount += 1;
+            }
+        }
+
+        return amount;
+    }
+
     pub fn getContext(self: *Self, username: []const u8) ?*Context {
         const log = std.log.scoped(.get_context);
 
@@ -183,17 +195,7 @@ fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
         const GlobalContextManager = global.get_context_manager();
         defer GlobalContextManager.mutex.unlock();
 
-        const allocator = GlobalContextManager.allocator;
-
-        const message = std.fmt.allocPrint(allocator, "{s} has joined the chat.", .{ctx.username}) catch |err| {
-            log.err("failed to allocate system message: {}", .{err});
-            return;
-        };
-        defer allocator.free(message);
-
-        GlobalContextManager.systemMessage(.{ .message = message });
-
-        GlobalContextManager.sendPacket(.{ .type = "update", .data = .{ .userCount = GlobalContextManager.contexts.items.len } }, null);
+        GlobalContextManager.sendPacket(.{ .type = "update", .data = .{ .userCount = GlobalContextManager.clientsConnected() } }, null);
     }
 }
 
@@ -217,8 +219,6 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
 
         GlobalContextManager.systemMessage(.{ .message = message });
 
-        GlobalContextManager.sendPacket(.{ .type = "update", .data = .{ .userCount = contexts.len - 1 } }, null);
-
         for (contexts, 0..) |item, index| {
             if (item == ctx) {
                 if (ctx.permission == 2) {
@@ -232,6 +232,8 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
                 break;
             }
         }
+
+        GlobalContextManager.sendPacket(.{ .type = "update", .data = .{ .userCount = GlobalContextManager.clientsConnected() } }, null);
     }
 }
 
