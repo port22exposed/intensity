@@ -14,6 +14,7 @@ pub const Context = struct {
     ip: []const u8,
     channel: []const u8,
     handle: ?WebSockets.WsHandle,
+    accepted: bool,
     permission: u8, // 0 = regular user, 1 = operator, 2 = owner
     // we need to hold on to them and just re-use them for every incoming
     // connection
@@ -105,6 +106,7 @@ pub const ContextManager = struct {
                 .ip = ip,
                 .channel = "comms",
                 .handle = null,
+                .accepted = false,
                 .permission = if (self.contexts.items.len == 0) 2 else 0,
                 // used in subscribe()
                 .subscribeArgs = .{
@@ -127,28 +129,70 @@ pub const ContextManager = struct {
         }
     }
 
-    pub fn systemMessage(self: *Self, options: struct {
-        payload: []const u8,
-        handle: ?WebSockets.WsHandle = null,
-    }) void {
-        const log = std.log.scoped(.system_message);
+    pub fn sendPacket(self: *Self, payload: anytype, context: ?*Context) void {
+        const log = std.log.scoped(.websocket_write);
 
-        const messagePacket = .{ .type = "systemMessage", .data = .{ .message = options.payload } };
-
-        const jsonString = std.json.stringifyAlloc(self.allocator, messagePacket, .{}) catch |err| {
-            log.err("error allocating memory for system message packet: {}", .{err});
+        const jsonString = std.json.stringifyAlloc(self.allocator, payload, .{}) catch |err| {
+            log.err("error allocating memory for packet: {}", .{err});
             return;
         };
         defer self.allocator.free(jsonString);
 
-        if (options.handle) |handle| {
-            WebSocketHandler.write(handle, jsonString, true) catch |err| {
-                log.err("failed writing to specified handle: {}", .{err});
-                return;
-            };
+        if (context) |ctx| {
+            if (ctx.accepted) {
+                if (ctx.handle) |handle| {
+                    WebSocketHandler.write(handle, jsonString, true) catch |err| {
+                        log.err("failed writing to specified context: {}", .{err});
+                        return;
+                    };
+                }
+            }
         } else {
-            WebSocketHandler.publish(.{ .channel = "comms", .message = jsonString });
+            for (self.contexts.items) |ctx| {
+                if (ctx.handle) |handle| {
+                    if (ctx.accepted) {
+                        WebSocketHandler.write(handle, jsonString, true) catch |err| {
+                            log.err("failed writing to specified handle: {}", .{err});
+                            return;
+                        };
+                    }
+                }
+            }
         }
+    }
+
+    pub fn systemMessage(self: *Self, options: struct {
+        message: []const u8,
+        context: ?*Context = null,
+    }) void {
+        self.sendPacket(.{ .type = "systemMessage", .data = .{ .message = options.message } }, options.context);
+        // const log = std.log.scoped(.system_message);
+
+        // const messagePacket = .{ .type = "systemMessage", .data = .{ .message = options.message } };
+
+        // const jsonString = std.json.stringifyAlloc(self.allocator, messagePacket, .{}) catch |err| {
+        //     log.err("error allocating memory for system message packet: {}", .{err});
+        //     return;
+        // };
+        // defer self.allocator.free(jsonString);
+
+        // if (options.handle) |handle| {
+        //     WebSocketHandler.write(handle, jsonString, true) catch |err| {
+        //         log.err("failed writing to specified handle: {}", .{err});
+        //         return;
+        //     };
+        // } else {
+        //     for (self.contexts.items) |context| {
+        //         if (context.handle) {
+        //             if (context.accepted) {
+        //                 WebSocketHandler.write(context.handle, jsonString, true) catch |err| {
+        //                     log.err("failed writing to specified handle: {}", .{err});
+        //                     return;
+        //                 };
+        //             }
+        //         }
+        //     }
+        // }
     }
 };
 
@@ -174,7 +218,7 @@ fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
         };
         defer allocator.free(message);
 
-        GlobalContextManager.systemMessage(.{ .payload = message });
+        GlobalContextManager.systemMessage(.{ .message = message });
 
         const updatePacket = .{ .type = "update", .data = .{ .userCount = GlobalContextManager.contexts.items.len } };
 
@@ -209,7 +253,7 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
         };
         defer allocator.free(message);
 
-        GlobalContextManager.systemMessage(.{ .payload = message });
+        GlobalContextManager.systemMessage(.{ .message = message });
 
         const jsonString = std.json.stringifyAlloc(allocator, updatePacket, .{}) catch |err| {
             log.err("error allocating memory for update packet: {}", .{err});
@@ -241,6 +285,8 @@ fn handle_websocket_message(
     message: []const u8,
     is_text: bool,
 ) void {
+    _ = handle; // unused now
+
     const log = std.log.scoped(.websocket_message);
 
     if (context) |ctx| {
@@ -271,12 +317,12 @@ fn handle_websocket_message(
                 };
 
                 if (std.mem.eql(u8, packetType, "command")) {
-                    packetHandlers.command.handle_message(ctx, handle, obj) catch |err| {
+                    packetHandlers.command.handle_message(ctx, obj) catch |err| {
                         log.warn("packet from {s} failed to be handled: {}", .{ ctx.username, err });
                         return;
                     };
                 } else if (std.mem.eql(u8, packetType, "message")) {
-                    packetHandlers.message.handle_message(ctx, handle, obj) catch |err| {
+                    packetHandlers.message.handle_message(ctx, obj) catch |err| {
                         log.warn("packet from {s} failed to be handled: {}", .{ ctx.username, err });
                         return;
                     };

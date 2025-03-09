@@ -18,7 +18,6 @@ const CommandName = enum {
 
 pub fn handle_message(
     context: *ws.Context,
-    handle: WebSockets.WsHandle,
     object: std.json.ObjectMap,
 ) !void {
     const GlobalContextManager = global.get_context_manager();
@@ -47,7 +46,7 @@ pub fn handle_message(
             };
             defer allocator.free(notice);
 
-            GlobalContextManager.systemMessage(.{ .handle = handle, .payload = notice });
+            GlobalContextManager.systemMessage(.{ .context = context, .message = notice });
         },
         .host => {
             for (GlobalContextManager.contexts.items) |ctx| {
@@ -58,13 +57,13 @@ pub fn handle_message(
                     };
                     defer allocator.free(notice);
 
-                    GlobalContextManager.systemMessage(.{ .handle = handle, .payload = notice });
+                    GlobalContextManager.systemMessage(.{ .context = context, .message = notice });
                 }
             }
         },
         .kick => {
             if (context.permission < 1) {
-                GlobalContextManager.systemMessage(.{ .handle = handle, .payload = "insufficient permissions to run command" });
+                GlobalContextManager.systemMessage(.{ .context = context, .message = "insufficient permissions to run command" });
                 return error.InvalidPermissions;
             }
 
@@ -72,7 +71,7 @@ pub fn handle_message(
 
             if (questionableTargetContext) |targetContext| {
                 if (targetContext.permission >= context.permission) {
-                    GlobalContextManager.systemMessage(.{ .handle = handle, .payload = "you cannot kick users with the same or higher permission levels as you!" });
+                    GlobalContextManager.systemMessage(.{ .context = context, .message = "you cannot kick users with the same or higher permission levels as you!" });
                     return error.InvalidPermissions;
                 }
 
@@ -86,14 +85,14 @@ pub fn handle_message(
                     };
                     defer allocator.free(notice);
 
-                    GlobalContextManager.systemMessage(.{ .payload = notice });
+                    GlobalContextManager.systemMessage(.{ .message = notice });
                     std.log.info("{s}", .{notice});
                 }
             }
         },
         .op => {
             if (context.permission < 2) {
-                GlobalContextManager.systemMessage(.{ .handle = handle, .payload = "insufficient permissions to run command" });
+                GlobalContextManager.systemMessage(.{ .context = context, .message = "insufficient permissions to run command" });
                 return error.InvalidPermissions;
             }
 
@@ -108,13 +107,13 @@ pub fn handle_message(
                 };
                 defer allocator.free(notice);
 
-                GlobalContextManager.systemMessage(.{ .payload = notice });
+                GlobalContextManager.systemMessage(.{ .message = notice });
                 std.log.info("{s}", .{notice});
             }
         },
         .deop => {
             if (context.permission < 2) {
-                GlobalContextManager.systemMessage(.{ .handle = handle, .payload = "insufficient permissions to run command" });
+                GlobalContextManager.systemMessage(.{ .context = context, .message = "insufficient permissions to run command" });
                 return error.InvalidPermissions;
             }
 
@@ -129,13 +128,13 @@ pub fn handle_message(
                 };
                 defer allocator.free(notice);
 
-                GlobalContextManager.systemMessage(.{ .payload = notice });
+                GlobalContextManager.systemMessage(.{ .message = notice });
                 std.log.info("{s}", .{notice});
             }
         },
         .transfer => {
             if (context.permission < 2) {
-                GlobalContextManager.systemMessage(.{ .handle = handle, .payload = "insufficient permissions to run command" });
+                GlobalContextManager.systemMessage(.{ .context = context, .message = "insufficient permissions to run command" });
                 return error.InvalidPermissions;
             }
 
@@ -151,7 +150,7 @@ pub fn handle_message(
                 };
                 defer allocator.free(notice);
 
-                GlobalContextManager.systemMessage(.{ .payload = notice });
+                GlobalContextManager.systemMessage(.{ .message = notice });
                 std.log.info("{s}", .{notice});
             }
         },

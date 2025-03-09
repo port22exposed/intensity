@@ -58,6 +58,10 @@ fn internal_upgrade(r: zap.Request, target_protocol: []const u8) UpgradeError!vo
         return error.ContextCreationException;
     };
 
+    if (GlobalContextManager.contexts.items.len <= 1) {
+        context.accepted = true;
+    }
+
     WebSocketHandler.upgrade(r.h, &context.settings) catch {
         allocator.free(ownedUsername);
         allocator.free(ownedIp);
