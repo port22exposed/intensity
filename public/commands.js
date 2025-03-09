@@ -23,7 +23,7 @@ const commands = {
 		},
 		ban: {
 			targetArg: true,
-			description: "bans the user from the group chat via their IP address",
+			description: "bans the user from the group chat",
 		},
 	},
 	OWNER: {
