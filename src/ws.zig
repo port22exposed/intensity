@@ -199,7 +199,7 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
 
         const contexts = GlobalContextManager.contexts.items;
 
-        const updatePacket = .{ .type = "update", .data = .{ .userCount = contexts.len } };
+        const updatePacket = .{ .type = "update", .data = .{ .userCount = contexts.len - 1 } };
 
         const allocator = GlobalContextManager.allocator;
 
@@ -226,7 +226,9 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
                         contexts[index + 1].permission = 2;
                     }
                 }
-                GlobalContextManager.deleteContext(index);
+                GlobalContextManager.deleteContext(index) catch |err| {
+                    log.warn("failed to delete context: {}", .{err});
+                };
                 break;
             }
         }
