@@ -173,6 +173,10 @@ pub const ContextManager = struct {
         }
     }
 
+    pub fn updatePacket(self: *Self) void {
+        self.sendPacket(.{ .type = "update", .data = .{ .userCount = self.clientsConnected() } }, null);
+    }
+
     pub fn systemMessage(self: *Self, options: struct {
         message: []const u8,
         context: ?*Context = null,
@@ -195,7 +199,7 @@ fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) void {
         const GlobalContextManager = global.get_context_manager();
         defer GlobalContextManager.mutex.unlock();
 
-        GlobalContextManager.sendPacket(.{ .type = "update", .data = .{ .userCount = GlobalContextManager.clientsConnected() } }, null);
+        GlobalContextManager.updatePacket();
     }
 }
 
@@ -211,7 +215,9 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
 
         const allocator = GlobalContextManager.allocator;
 
-        const message = std.fmt.allocPrint(allocator, "{s} has left the chat.", .{ctx.username}) catch |err| {
+        const formatString = if (ctx.accepted) "{s} has left the chat." else "{s} disconnected from the join queue!";
+
+        const message = std.fmt.allocPrint(allocator, formatString, .{ctx.username}) catch |err| {
             log.err("failed to allocate system message: {}", .{err});
             return;
         };
@@ -233,7 +239,7 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
             }
         }
 
-        GlobalContextManager.sendPacket(.{ .type = "update", .data = .{ .userCount = GlobalContextManager.clientsConnected() } }, null);
+        GlobalContextManager.updatePacket();
     }
 }
 
@@ -248,7 +254,7 @@ fn handle_websocket_message(
     const log = std.log.scoped(.websocket_message);
 
     if (context) |ctx| {
-        if (ctx.accepted != false) {
+        if (!ctx.accepted) {
             return;
         }
 
