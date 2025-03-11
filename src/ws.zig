@@ -215,15 +215,23 @@ fn on_close_websocket(context: ?*Context, uuid: isize) void {
 
         const allocator = GlobalContextManager.allocator;
 
-        const formatString = if (ctx.accepted) "{s} has left the chat." else "{s} disconnected from the join queue!";
+        if (ctx.accepted) {
+            const message = std.fmt.allocPrint(allocator, "{s} has left the chat.", .{ctx.username}) catch |err| {
+                log.err("failed to allocate system message: {}", .{err});
+                return;
+            };
+            defer allocator.free(message);
 
-        const message = std.fmt.allocPrint(allocator, formatString, .{ctx.username}) catch |err| {
-            log.err("failed to allocate system message: {}", .{err});
-            return;
-        };
-        defer allocator.free(message);
+            GlobalContextManager.systemMessage(.{ .message = message });
+        } else {
+            const message = std.fmt.allocPrint(allocator, "{s} disconnected from the join queue!.", .{ctx.username}) catch |err| {
+                log.err("failed to allocate system message: {}", .{err});
+                return;
+            };
+            defer allocator.free(message);
 
-        GlobalContextManager.systemMessage(.{ .message = message });
+            GlobalContextManager.systemMessage(.{ .message = message });
+        }
 
         for (contexts, 0..) |item, index| {
             if (item == ctx) {
