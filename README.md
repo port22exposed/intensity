@@ -9,7 +9,7 @@ Intensity is a post-quantum end-to-end-encrypted chat server, and client for qui
 
 ## Build Instructions
 
-We use the as of writing this stable version of [Zig](https://ziglang.org/), v13. We also rely on [zigzap/zig](https://github.com/zigzap/zap) but Zig should automagically handle that!
+We use the as of writing this stable version of [Zig](https://ziglang.org/), v14. We also rely on [zigzap/zig](https://github.com/zigzap/zap) but Zig should automagically handle that!
 
 `zig build -Doptimize=ReleaseSafe`
 
