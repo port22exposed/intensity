@@ -15,4 +15,4 @@ We use the as of writing this stable version of [Zig](https://ziglang.org/), v14
 
 ## Source Conditions
 
-This project is licensed under the [BSD 2-Clause License](./LICENSE). The website's favicon (specifically this [file](./public/favicon.ico)) is licensed under the MIT license.
+This project is licensed under the [GNU AGPLv3](./LICENSE) license. The website's favicon (specifically this [file](./public/favicon.ico)) is licensed under the MIT license.
