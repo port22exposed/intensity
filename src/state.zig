@@ -24,7 +24,7 @@ pub const State = struct {
         self.join_codes.deinit();
     }
 
-    pub fn generateInviteCode(self: *Self) !void {
+    pub fn generateJoinCode(self: *Self) !void {
         self.mutex.lock();
         defer self.mutex.unlock();
 
