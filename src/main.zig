@@ -2,7 +2,6 @@ const builtin = @import("builtin");
 const std = @import("std");
 const zap = @import("zap");
 
-const listener = @import("./listener.zig");
 const global = @import("./global.zig");
 
 const Allocator = if (builtin.mode == .Debug)
@@ -72,7 +71,7 @@ pub fn main() !void {
 
     var http = zap.HttpListener.init(.{
         .port = port,
-        .on_request = listener.on_request,
+        .on_request = @import("./listener/request/public.zig").on_request,
         .max_clients = 1024,
         .max_body_size = 1 * 1024,
         .ws_timeout = 60, // disconnects, if no response in 60s
