@@ -2,12 +2,8 @@ const builtin = @import("builtin");
 const std = @import("std");
 const zap = @import("zap");
 
+const listener = @import("./listener.zig");
 const global = @import("./global.zig");
-
-fn on_request(r: zap.Request) void {
-    r.setStatus(.not_found);
-    r.sendBody("<html><body><h1>404 - File not found</h1></body></html>") catch return;
-}
 
 const Allocator = if (builtin.mode == .Debug)
     std.heap.GeneralPurposeAllocator(.{ .thread_safe = true })
@@ -74,16 +70,16 @@ pub fn main() !void {
         }
     }
 
-    var listener = zap.HttpListener.init(.{
+    var http = zap.HttpListener.init(.{
         .port = port,
-        .on_request = on_request,
+        .on_request = listener.on_request,
         .max_clients = 1024,
         .max_body_size = 1 * 1024,
         .ws_timeout = 60, // disconnects, if no response in 60s
         .public_folder = frontendDirectory,
         .log = builtin.mode == .Debug,
     });
-    try listener.listen();
+    try http.listen();
 
     std.log.info("HTTP server listening on http://localhost:3000", .{});
     std.log.info("WebSocket server listening on ws://localhost:3000", .{});
