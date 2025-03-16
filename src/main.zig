@@ -9,14 +9,27 @@ fn on_request(r: zap.Request) void {
     r.sendBody("<html><body><h1>404 - File not found</h1></body></html>") catch return;
 }
 
+const Allocator = if (builtin.mode == .Debug)
+    std.heap.GeneralPurposeAllocator(.{ .thread_safe = true })
+else
+    std.heap.SmpAllocator;
+
+var allocator_state = if (builtin.mode == .Debug)
+    Allocator{}
+else
+    null;
+
+const allocator = if (builtin.mode == .Debug)
+    allocator_state.allocator()
+else
+    std.heap.smp_allocator;
+
 pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{
-        .thread_safe = true,
-    }){};
-    const allocator = gpa.allocator();
     defer {
-        const deinit_status = gpa.deinit();
-        if (deinit_status == .leak) std.log.debug("GPA detected a memory leak!", .{});
+        if (builtin.mode == .Debug) {
+            const deinit_status = allocator_state.deinit();
+            if (deinit_status == .leak) std.log.debug("GPA detected a memory leak!", .{});
+        }
     }
 
     var args_it = try std.process.argsWithAllocator(allocator);
