@@ -2,7 +2,7 @@ const builtin = @import("builtin");
 const std = @import("std");
 const zap = @import("zap");
 
-const State = @import("./state.zig").State;
+const global = @import("./global.zig");
 
 fn on_request(r: zap.Request) void {
     r.setStatus(.not_found);
@@ -31,6 +31,9 @@ pub fn main() !void {
             if (deinit_status == .leak) std.log.debug("GPA detected a memory leak!", .{});
         }
     }
+
+    const state = global.initState(allocator);
+    defer state.deinit();
 
     var args_it = try std.process.argsWithAllocator(allocator);
     defer args_it.deinit();
