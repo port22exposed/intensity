@@ -14,7 +14,7 @@ var allocator_state = if (builtin.mode == .Debug)
 else
     null;
 
-const allocator = if (builtin.mode == .Debug)
+pub const allocator = if (builtin.mode == .Debug)
     allocator_state.allocator()
 else
     std.heap.smp_allocator;
