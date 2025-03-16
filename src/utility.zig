@@ -6,7 +6,7 @@ pub fn randomString(allocator: std.mem.Allocator, length: usize) ![]u8 {
     var result = try std.ArrayList(u8).initCapacity(allocator, length);
     errdefer result.deinit();
 
-    for (0..16) |_| {
+    for (0..length) |_| {
         const char = rand.intRangeAtMost(u8, 33, 126);
         try result.append(char);
     }
