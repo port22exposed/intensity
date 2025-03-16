@@ -32,6 +32,8 @@ pub const JoinCode = struct {
 };
 
 test "JoinCode tests" {
+    defer _ = std.testing.allocator_instance.detectLeaks();
+
     const timestamp: i64 = 1234;
     const username: []const u8 = "username";
     const random_component: []const u8 = "randomcodethatcancontain|the|separator";
