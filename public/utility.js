@@ -32,18 +32,3 @@ export function sendSystem(text) {
 	dom.messagelist.appendChild(createSystemMessageElement(text))
 	updateScrollPosition()
 }
-
-export function isValidUsername(username) {
-	let valid = username != null
-	const len = username.length
-
-	if (len <= 3 || len > 20) {
-		valid = false
-	}
-
-	if (!/^[a-zA-Z0-9]+$/.test(username)) {
-		valid = false
-	}
-
-	return valid
-}
