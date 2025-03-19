@@ -1,4 +1,5 @@
 const std = @import("std");
+const utility = @import("./utility.zig");
 
 const State = @import("./state.zig").State;
 
@@ -12,3 +13,5 @@ pub fn initState(allocator: std.mem.Allocator) *State {
 pub fn getState() *State {
     return &global_state;
 }
+
+pub const chat_channel = "fat_succ";
