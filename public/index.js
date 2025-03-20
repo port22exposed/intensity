@@ -1,7 +1,6 @@
 import {
 	updateScrollPosition,
 	createMessageElement,
-	isValidUsername,
 	sendSystem,
 } from "./utility.js"
 import { handleCommand } from "./commands.js"
@@ -18,7 +17,7 @@ export function getWebSocket() {
 	return websocket
 }
 
-function promptForUsername() {
+async function promptForUsername() {
 	const username = prompt(
 		"Enter a username to join!\n\nlength : 3-20, charset: alphanumeric + `_` + `-`, cannot be already in use (case insensitive detection)\n\n[WARNING]: The username is shared with the server unencrypted!",
 		Array.from(crypto.getRandomValues(new Uint8Array(2)), (b) =>
@@ -26,18 +25,24 @@ function promptForUsername() {
 		).join("")
 	)
 
-	if (!isValidUsername(username)) {
-		alert("Username is invalid, please re-read the requirements and try again!")
+	const usernameStatus = await (
+		await fetch(`/checkUsername?username=${username}`)
+	).text()
+
+	if (usernameStatus == "VALIDATED") {
+		return username
+	} else {
+		alert(`Username, ${username}, is invalid!\n\nREASON: ${usernameStatus}`)
 		return promptForUsername()
 	}
-
-	return username
 }
 
-window.onload = () => {
+window.onload = async () => {
 	function send() {
 		const message = dom.messagebox.value
-		dom.messagelist.appendChild(createMessageElement(username, dom.messagebox.value))
+		dom.messagelist.appendChild(
+			createMessageElement(username, dom.messagebox.value)
+		)
 		dom.messagelist.scrollTop = dom.messagelist.scrollHeight
 		updateScrollPosition()
 		if (message.startsWith("/")) {
@@ -57,19 +62,20 @@ window.onload = () => {
 		}
 	})
 
-	const username = promptForUsername()
+	const username = await promptForUsername()
+	const joinCode = prompt("Enter the join code provided by the inviter.")
 
 	dom.clientUsername.innerText = username
 
-	websocket = new WebSocket(
-		`${window.location.protocol === "https:" ? "wss:" : "ws:"}//${
-			window.location.host
-		}/?username=${username}`
-	)
+	// websocket = new WebSocket(
+	// 	`${window.location.protocol === "https:" ? "wss:" : "ws:"}//${
+	// 		window.location.host
+	// 	}/?username=${username}`
+	// )
 
-	websocket.onerror = exit
-	websocket.onclose = exit
-	websocket.onmessage = onmessage
+	// websocket.onerror = exit
+	// websocket.onclose = exit
+	// websocket.onmessage = onmessage
 
 	dom.messagebox.focus()
 
