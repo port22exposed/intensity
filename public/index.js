@@ -17,26 +17,6 @@ export function getWebSocket() {
 	return websocket
 }
 
-async function promptForUsername() {
-	const username = prompt(
-		"Enter a username to join!\n\nlength : 3-20, charset: alphanumeric + `_` + `-`, cannot be already in use (case insensitive detection)\n\n[WARNING]: The username is shared with the server unencrypted!",
-		Array.from(crypto.getRandomValues(new Uint8Array(2)), (b) =>
-			b.toString(16).padStart(2, "0")
-		).join("")
-	)
-
-	const usernameStatus = await (
-		await fetch(`/checkUsername?username=${username}`)
-	).text()
-
-	if (usernameStatus == "VALIDATED") {
-		return username
-	} else {
-		alert(`Username, ${username}, is invalid!\n\nREASON: ${usernameStatus}`)
-		return promptForUsername()
-	}
-}
-
 window.onload = async () => {
 	function send() {
 		const message = dom.messagebox.value
@@ -62,20 +42,19 @@ window.onload = async () => {
 		}
 	})
 
-	const username = await promptForUsername()
 	const joinCode = prompt("Enter the join code provided by the inviter.")
 
-	dom.clientUsername.innerText = username
+	dom.clientUsername.innerText = "WILL BE SENT BY THE SERVER <3"
 
-	// websocket = new WebSocket(
-	// 	`${window.location.protocol === "https:" ? "wss:" : "ws:"}//${
-	// 		window.location.host
-	// 	}/?username=${username}`
-	// )
+	websocket = new WebSocket(
+		`${window.location.protocol === "https:" ? "wss:" : "ws:"}//${
+			window.location.host
+		}`
+	)
 
-	// websocket.onerror = exit
-	// websocket.onclose = exit
-	// websocket.onmessage = onmessage
+	websocket.onerror = exit
+	websocket.onclose = exit
+	websocket.onmessage = onmessage
 
 	dom.messagebox.focus()
 
