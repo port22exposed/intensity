@@ -30,6 +30,9 @@ pub fn main() !void {
     const state = global.initState(allocator);
     defer state.deinit();
 
+    const context_manager = global.initContextManager(allocator);
+    defer context_manager.deinit();
+
     var args_it = try std.process.argsWithAllocator(allocator);
     defer args_it.deinit();
 
@@ -72,6 +75,7 @@ pub fn main() !void {
     var http = zap.HttpListener.init(.{
         .port = port,
         .on_request = @import("./listener/request/public.zig").on_request,
+        .on_upgrade = @import("./listener/upgrade/public.zig").on_upgrade,
         .max_clients = 1024,
         .max_body_size = 1 * 1024,
         .ws_timeout = 60, // disconnects, if no response in 60s
