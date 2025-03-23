@@ -35,6 +35,7 @@ pub const ContextManager = struct {
     pub fn deinit(self: *Self) void {
         for (self.contexts.items) |ctx| {
             self.allocator.free(ctx.username);
+            self.allocator.destroy(ctx);
         }
         self.contexts.deinit();
     }
