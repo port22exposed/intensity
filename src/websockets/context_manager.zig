@@ -41,6 +41,9 @@ pub const ContextManager = struct {
     }
 
     fn generateUniqueUsername(self: *Self) ![]u8 {
+        self.mutex.lock();
+        defer self.mutex.unlock();
+
         var attempts: usize = 0;
         const max_attempts: usize = 10;
 
