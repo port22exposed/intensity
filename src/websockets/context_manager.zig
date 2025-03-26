@@ -41,34 +41,6 @@ pub const ContextManager = struct {
         self.contexts.deinit();
     }
 
-    fn generateUniqueUsername(self: *Self) ![]u8 {
-        self.mutex.lock();
-        defer self.mutex.unlock();
-
-        var attempts: usize = 0;
-        const max_attempts: usize = 10;
-
-        while (attempts < max_attempts) : (attempts += 1) {
-            const candidate = try utility.randomAlphanumericString(self.allocator, 8);
-
-            var is_taken = false;
-            for (self.contexts.items) |ctx| {
-                if (std.mem.eql(u8, ctx.username, candidate)) {
-                    is_taken = true;
-                    break;
-                }
-            }
-
-            if (!is_taken) {
-                return candidate;
-            }
-
-            self.allocator.free(candidate);
-        }
-
-        return error.UsernameGenerationFailed;
-    }
-
     pub fn sendPacket(self: *Self, name: []const u8, data: anytype) !void {
         const json = .{ .type = name, .data = data };
         const encodedPacket = try std.json.stringifyAlloc(self.allocator, json, .{});
@@ -80,12 +52,9 @@ pub const ContextManager = struct {
         });
     }
 
-    pub fn newContext(self: *Self) !*Context {
+    pub fn newContext(self: *Self, username: []u8) !*Context {
         self.mutex.lock();
         defer self.mutex.unlock();
-
-        const username = try self.generateUniqueUsername();
-        errdefer self.allocator.free(username);
 
         const ctx = try self.allocator.create(Context);
 
