@@ -42,7 +42,3 @@ pub fn randomAlphanumericString(allocator: std.mem.Allocator, length: usize) ![]
     const slice = try result.toOwnedSlice();
     return slice;
 }
-
-pub fn stringifyAsJSON(allocator: std.mem.Allocator, data: anytype) ![]u8 {
-    return std.json.stringifyAlloc(allocator, data, .{});
-}

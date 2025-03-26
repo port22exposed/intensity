@@ -3,6 +3,7 @@ const zap = @import("zap");
 const WebSockets = zap.WebSockets;
 
 const utility = @import("../utility.zig");
+const global = @import("../global.zig");
 
 pub const WebSocketHandler = WebSockets.Handler(Context);
 
@@ -68,6 +69,17 @@ pub const ContextManager = struct {
         return error.UsernameGenerationFailed;
     }
 
+    pub fn sendPacket(self: *Self, name: []const u8, data: anytype) !void {
+        const json = .{ .type = name, .data = data };
+        const encodedPacket = try std.json.stringifyAlloc(self.allocator, json, .{});
+        defer self.allocator.free(encodedPacket);
+        WebSocketHandler.publish(.{
+            .channel = global.chat_channel,
+            .message = encodedPacket,
+            .is_json = true,
+        });
+    }
+
     pub fn newContext(self: *Self) !*Context {
         self.mutex.lock();
         defer self.mutex.unlock();
@@ -83,7 +95,7 @@ pub const ContextManager = struct {
             .permission = if (self.contexts.items.len == 0) 255 else 0,
             // used in subscribe()
             .subscribe_args = .{
-                .channel = @import("../global.zig").chat_channel,
+                .channel = global.chat_channel,
                 .force_text = true,
                 .context = ctx,
             },
