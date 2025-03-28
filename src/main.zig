@@ -2,7 +2,9 @@ const builtin = @import("builtin");
 const std = @import("std");
 const zap = @import("zap");
 
+const codes = @import("./codes.zig");
 const global = @import("./global.zig");
+const utility = @import("./utility.zig");
 
 const Allocator = if (builtin.mode == .Debug)
     std.heap.GeneralPurposeAllocator(.{ .thread_safe = true })
@@ -29,6 +31,52 @@ pub fn main() !void {
 
     const state = global.initState(allocator);
     defer state.deinit();
+
+    const stdout = std.io.getStdOut().writer();
+    const stdin = std.io.getStdIn().reader();
+
+    var buffer: [20]u8 = undefined;
+    var username: []const u8 = undefined;
+
+    while (true) {
+        try stdout.print("Pick your username to join the chat room as: ", .{});
+
+        const readData = stdin.readUntilDelimiterOrEof(&buffer, '\n') catch |e| switch (e) {
+            error.StreamTooLong => {
+                // Clear the remaining input
+                _ = try stdin.skipUntilDelimiterOrEof('\n');
+                try stdout.print("The username's length has to be within the range of 3 >= x <= 20!\n", .{});
+                continue;
+            },
+            else => {
+                try stdout.print("oops, error reading stdin: {}\n", .{e});
+                return e;
+            },
+        };
+
+        if (readData) |input| {
+            utility.validateUsername(input) catch |err| {
+                switch (err) {
+                    error.InvalidCharacters => {
+                        try stdout.print("The username is not alphanumeric! [A-Z][a-z][0-9]\n", .{});
+                        continue;
+                    },
+                    error.InvalidLength => {
+                        try stdout.print("The username's length has to be within the range of 3 >= x <= 20!\n", .{});
+                        continue;
+                    },
+                }
+            };
+            username = input;
+            break;
+        } else {
+            try stdout.print("No input received. Please try again.\n", .{});
+            continue;
+        }
+    }
+
+    const join_code = try codes.JoinCode.init(allocator, username);
+    try state.join_codes.append(join_code);
 
     const context_manager = global.initContextManager(allocator);
     defer context_manager.deinit();
@@ -87,6 +135,7 @@ pub fn main() !void {
     std.log.info("HTTP server listening on http://localhost:3000", .{});
     std.log.info("WebSocket server listening on ws://localhost:3000", .{});
     std.log.info("Terminate with CTRL+C", .{});
+    std.log.info("Welcome, {s}, use this join code to enter the GC (including the \"{s}|\" portion):\n{s}", .{ username, username, join_code.code });
 
     zap.start(.{
         .threads = threads,
