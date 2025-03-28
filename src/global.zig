@@ -25,4 +25,4 @@ pub fn getContextManager() *ContextManager {
     return &global_context_manager;
 }
 
-pub const chat_channel = "fat_succ";
+pub const CHAT_CHANNEL = "fat_succ";
