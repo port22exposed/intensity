@@ -16,3 +16,18 @@ pub fn randomString(allocator: std.mem.Allocator, length: usize) ![]u8 {
     const slice = try result.toOwnedSlice();
     return slice;
 }
+
+/// Username validation
+/// Usernames must be 3>=x=<20 characters in length
+/// Usernames must be alphanumeric [A-Z][a-z][0-9]
+pub fn validateUsername(username: []const u8) !void {
+    if (username.len < 3 or username.len > 20) {
+        return error.InvalidLength;
+    }
+
+    for (username) |character| {
+        if (!std.ascii.isAlphanumeric(character)) {
+            return error.InvalidCharacters;
+        }
+    }
+}
