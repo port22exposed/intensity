@@ -2,7 +2,7 @@ const std = @import("std");
 
 const utility = @import("./utility.zig");
 
-pub const RANDOM_COMPONENT_LENGTH = 2048;
+pub const RANDOM_COMPONENT_LENGTH = 128;
 pub const MAX_USERNAME_LENGTH = 20;
 pub const MAX_JOIN_CODE_LENGTH = MAX_USERNAME_LENGTH + RANDOM_COMPONENT_LENGTH + 1; // Accounts for the username and random_component length + 1 for the separator character.
 
