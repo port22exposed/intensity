@@ -46,7 +46,7 @@ pub const ContextManager = struct {
         const encodedPacket = try std.json.stringifyAlloc(self.allocator, json, .{});
         defer self.allocator.free(encodedPacket);
         WebSocketHandler.publish(.{
-            .channel = global.chat_channel,
+            .channel = global.CHAT_CHANNEL,
             .message = encodedPacket,
             .is_json = true,
         });
@@ -64,7 +64,7 @@ pub const ContextManager = struct {
             .permission = if (self.contexts.items.len == 0) 255 else 0,
             // used in subscribe()
             .subscribe_args = .{
-                .channel = global.chat_channel,
+                .channel = global.CHAT_CHANNEL,
                 .force_text = true,
                 .context = ctx,
             },
