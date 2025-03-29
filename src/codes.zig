@@ -24,5 +24,6 @@ pub const JoinCode = struct {
 
     pub fn deinit(self: Self) void {
         self.allocator.free(self.code);
+        self.allocator.free(self.username);
     }
 };
