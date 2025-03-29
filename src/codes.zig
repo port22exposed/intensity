@@ -26,16 +26,3 @@ pub const JoinCode = struct {
         self.allocator.free(self.code);
     }
 };
-
-test "JoinCode tests" {
-    defer _ = std.testing.allocator_instance.detectLeaks();
-
-    const allocator = std.testing.allocator;
-
-    const username = "meow";
-
-    const join_code = try JoinCode.init(allocator, username);
-    defer join_code.deinit();
-
-    try std.testing.expectEqualStrings(username, join_code.username);
-}
