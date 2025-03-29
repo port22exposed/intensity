@@ -56,10 +56,12 @@ pub const ContextManager = struct {
         self.mutex.lock();
         defer self.mutex.unlock();
 
+        const owned_username = try self.allocator.dupe(u8, username);
+
         const ctx = try self.allocator.create(Context);
 
         ctx.* = .{
-            .username = username,
+            .username = owned_username,
             .handle = null,
             .permission = if (self.contexts.items.len == 0) 255 else 0,
             // used in subscribe()
