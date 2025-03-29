@@ -5,16 +5,16 @@ const rand = std.crypto.random;
 /// Generates a random string in the form of a u8 byte array.
 /// The caller must free the memory!
 pub fn randomString(allocator: std.mem.Allocator, length: usize) ![]u8 {
+    const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
+
     var result = try std.ArrayList(u8).initCapacity(allocator, length);
-    errdefer result.deinit();
 
     for (0..length) |_| {
-        const char = rand.intRangeAtMost(u8, 33, 126);
-        try result.append(char);
+        const index = try rand.intRangeAtMost(usize, 0, charset.len - 1);
+        try result.append(charset[index]);
     }
 
-    const slice = try result.toOwnedSlice();
-    return slice;
+    return try result.toOwnedSlice();
 }
 
 /// Username validation
