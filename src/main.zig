@@ -135,7 +135,7 @@ pub fn main() !void {
     std.log.info("HTTP server listening on http://localhost:3000", .{});
     std.log.info("WebSocket server listening on ws://localhost:3000", .{});
     std.log.info("Terminate with CTRL+C", .{});
-    std.log.info("Welcome, {s}, use this join code to enter the GC (including the \"{s}|\" portion):\n{s}", .{ username, username, join_code.code });
+    std.log.info("Welcome, {s}, use this join code to enter the GC (all text within the ``):\n`{s}`", .{ username, join_code.code });
 
     zap.start(.{
         .threads = threads,
