@@ -10,7 +10,7 @@ pub fn randomString(allocator: std.mem.Allocator, length: usize) ![]u8 {
     var result = try std.ArrayList(u8).initCapacity(allocator, length);
 
     for (0..length) |_| {
-        const index = try rand.intRangeAtMost(usize, 0, charset.len - 1);
+        const index = rand.intRangeAtMost(usize, 0, charset.len - 1);
         try result.append(charset[index]);
     }
 
