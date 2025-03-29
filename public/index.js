@@ -49,7 +49,7 @@ window.onload = async () => {
 	websocket = new WebSocket(
 		`${window.location.protocol === "https:" ? "wss:" : "ws:"}//${
 			window.location.host
-		}`
+		}/?auth=${joinCode}`
 	)
 
 	websocket.onerror = exit
