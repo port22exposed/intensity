@@ -20,6 +20,9 @@ pub fn handler(context: ?*context_manager.Context, handle: WebSockets.WsHandle) 
         ctx.handle = handle;
 
         const global_context_manager = global.getContextManager();
-        global_context_manager.sendPacket("pong", .{ .username = ctx.username }, ctx);
+        global_context_manager.sendPacket("pong", .{ .username = ctx.username }, handle) catch |err| {
+            log.err("failed to send pong packet: {any}", .{err});
+            return;
+        };
     }
 }
