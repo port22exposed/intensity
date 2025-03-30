@@ -50,9 +50,9 @@ window.onload = async () => {
 		}/?auth=${joinCode}`
 	)
 
+	websocket.onmessage = onmessage
 	websocket.onerror = exit
 	websocket.onclose = exit
-	websocket.onmessage = onmessage
 
 	dom.messagebox.focus()
 
