@@ -24,5 +24,7 @@ pub fn handler(context: ?*context_manager.Context, handle: WebSockets.WsHandle) 
             log.err("failed to send pong packet: {any}", .{err});
             return;
         };
+
+        global_context_manager.sendPacket("update", .{ .userCount = global_context_manager.contexts.items.len }, null);
     }
 }
