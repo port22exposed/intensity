@@ -44,8 +44,6 @@ window.onload = async () => {
 
 	const joinCode = prompt("Enter the join code provided by the inviter.")
 
-	dom.clientUsername.innerText = "WILL BE SENT BY THE SERVER <3"
-
 	websocket = new WebSocket(
 		`${window.location.protocol === "https:" ? "wss:" : "ws:"}//${
 			window.location.host
