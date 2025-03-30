@@ -41,15 +41,22 @@ pub const ContextManager = struct {
         self.contexts.deinit();
     }
 
-    pub fn sendPacket(self: *Self, name: []const u8, data: anytype) !void {
+    pub fn sendPacket(self: *Self, name: []const u8, data: anytype, context: ?Context) !void {
         const json = .{ .type = name, .data = data };
         const encodedPacket = try std.json.stringifyAlloc(self.allocator, json, .{});
         defer self.allocator.free(encodedPacket);
-        WebSocketHandler.publish(.{
-            .channel = global.CHAT_CHANNEL,
-            .message = encodedPacket,
-            .is_json = true,
-        });
+
+        if (context) |ctx| {
+            if (ctx.handle) |handle| {
+                try WebSocketHandler.write(handle, encodedPacket, true);
+            }
+        } else {
+            WebSocketHandler.publish(.{
+                .channel = global.CHAT_CHANNEL,
+                .message = encodedPacket,
+                .is_json = false,
+            });
+        }
     }
 
     pub fn newContext(self: *Self, username: []u8) !*Context {
