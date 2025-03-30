@@ -25,6 +25,9 @@ pub fn handler(context: ?*context_manager.Context, handle: WebSockets.WsHandle) 
             return;
         };
 
-        global_context_manager.sendPacket("update", .{ .userCount = global_context_manager.contexts.items.len }, null);
+        global_context_manager.sendPacket("update", .{ .userCount = global_context_manager.contexts.items.len }, null) catch |err| {
+            log.err("failed to send update packet: {any}", .{err});
+            return;
+        };
     }
 }
