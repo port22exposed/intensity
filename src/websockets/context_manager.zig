@@ -38,7 +38,7 @@ pub const ContextManager = struct {
         self.contexts.deinit();
     }
 
-    pub fn sendPacket(self: *Self, name: []const u8, data: anytype, context: ?Context) !void {
+    pub fn sendPacket(self: *Self, name: []const u8, data: anytype, context: ?*Context) !void {
         const json = .{ .type = name, .data = data };
         const encodedPacket = try std.json.stringifyAlloc(self.allocator, json, .{});
         defer self.allocator.free(encodedPacket);
