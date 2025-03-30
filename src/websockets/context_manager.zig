@@ -27,10 +27,7 @@ pub const ContextManager = struct {
     pub fn init(
         allocator: std.mem.Allocator,
     ) Self {
-        return .{
-            .allocator = allocator,
-            .contexts = ContextList.init(allocator),
-        };
+        return .{ .allocator = allocator, .contexts = ContextList.init(allocator) };
     }
 
     pub fn deinit(self: *Self) void {
@@ -51,11 +48,7 @@ pub const ContextManager = struct {
                 try WebSocketHandler.write(handle, encodedPacket, true);
             }
         } else {
-            WebSocketHandler.publish(.{
-                .channel = global.CHAT_CHANNEL,
-                .message = encodedPacket,
-                .is_json = false,
-            });
+            WebSocketHandler.publish(.{ .channel = global.CHAT_CHANNEL, .message = encodedPacket, .is_json = false });
         }
     }
 
@@ -72,18 +65,9 @@ pub const ContextManager = struct {
             .handle = null,
             .permission = if (self.contexts.items.len == 0) 255 else 0,
             // used in subscribe()
-            .subscribe_args = .{
-                .channel = global.CHAT_CHANNEL,
-                .force_text = true,
-                .context = ctx,
-            },
+            .subscribe_args = .{ .channel = global.CHAT_CHANNEL, .force_text = true, .context = ctx },
             // used in upgrade()
-            .settings = .{
-                .on_open = @import("./on_open.zig").handler,
-                .on_close = @import("./on_close.zig").handler,
-                .on_message = @import("./handle_message.zig").handler,
-                .context = ctx,
-            },
+            .settings = .{ .on_open = @import("./on_open.zig").handler, .on_close = @import("./on_close.zig").handler, .on_message = @import("./handle_message.zig").handler, .context = ctx },
         };
 
         try self.contexts.append(ctx);
