@@ -3,6 +3,7 @@ const zap = @import("zap");
 
 const WebSockets = zap.WebSockets;
 
+const global = @import("../global.zig");
 const context_manager = @import("./context_manager.zig");
 
 const WebSocketHandler = context_manager.WebSocketHandler;
@@ -17,5 +18,8 @@ pub fn handler(context: ?*context_manager.Context, handle: WebSockets.WsHandle) 
         };
 
         ctx.handle = handle;
+
+        const global_context_manager = global.getContextManager();
+        global_context_manager.sendPacket("pong", .{ .username = ctx.username }, ctx);
     }
 }
