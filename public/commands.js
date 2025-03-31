@@ -5,40 +5,27 @@ let helpMessage = ""
 
 const commands = {
 	EVERYONE: {
-		host: {
+		highest: {
 			description: "displays the host as a PM",
 		},
 		status: {
 			description: "displays your current permission level as a PM",
 		},
 	},
-	OPERATOR: {
-		accept: {
+	HIERARCHAL: {
+		kick: {
 			targetArg: true,
-			description: "accepts a user's entry into the group chat",
-		},
-		deny: {
-			targetArg: true,
-			description: "denies a user's entry into the group chat",
-		},
-		ban: {
-			targetArg: true,
-			description: "bans the user from the group chat",
+			description: "kicks a user from the chat",
 		},
 	},
-	OWNER: {
-		op: {
+	HIGHEST: {
+		permup: {
 			targetArg: true,
-			description: "gives a user operator status",
+			description: "changes a user's permission level",
 		},
-		deop: {
+		permdown: {
 			targetArg: true,
-			description: "removes a user's operator status",
-		},
-		transfer: {
-			targetArg: true,
-			description:
-				"transfers ownership to another member of the group, you will retain operator status.",
+			description: "changes a user's permission level",
 		},
 	},
 }
