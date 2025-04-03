@@ -4,28 +4,14 @@ import { sendSystem } from "./utility.js"
 let helpMessage = ""
 
 const commands = {
-	EVERYONE: {
-		highest: {
-			description: "displays the host as a PM",
-		},
-		status: {
-			description: "displays your current permission level as a PM",
-		},
-	},
-	HIERARCHAL: {
+	OWNER: {
 		kick: {
 			targetArg: true,
-			description: "kicks a user from the chat",
+			description: "kicks a member from the chat",
 		},
-	},
-	HIGHEST: {
-		permup: {
+		invite: {
 			targetArg: true,
-			description: "changes a user's permission level",
-		},
-		permdown: {
-			targetArg: true,
-			description: "changes a user's permission level",
+			description: "generates an invite code for the user specified",
 		},
 	},
 }
