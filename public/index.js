@@ -21,7 +21,7 @@ window.onload = async () => {
 	function send() {
 		const message = dom.messagebox.value
 		dom.messagelist.appendChild(
-			createMessageElement(username, dom.messagebox.value)
+			createMessageElement(dom.clientUsername.innerText, dom.messagebox.value)
 		)
 		dom.messagelist.scrollTop = dom.messagelist.scrollHeight
 		updateScrollPosition()
