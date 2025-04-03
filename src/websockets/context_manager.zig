@@ -55,10 +55,10 @@ pub const ContextManager = struct {
         }
     }
 
-    pub fn systemMessage(self: *Self, message: []const u8) !void {
+    pub fn systemMessage(self: *Self, message: []const u8, handle: ?WebSockets.WsHandle) !void {
         try self.sendPacket("systemMessage", .{
             .message = message,
-        }, null);
+        }, handle);
     }
 
     pub fn newContext(self: *Self, username: []u8) !*Context {

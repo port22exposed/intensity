@@ -34,7 +34,7 @@ pub fn handler(context: ?*context_manager.Context, handle: WebSockets.WsHandle) 
         const joinMessage = std.fmt.allocPrint(allocator, "{s} has joined the chat.", .{ctx.username}) catch "New user joined the chat.";
         defer allocator.free(joinMessage);
 
-        global_context_manager.systemMessage(joinMessage) catch |err| {
+        global_context_manager.systemMessage(joinMessage, null) catch |err| {
             log.err("failed to send system message: {any}", .{err});
             return;
         };
