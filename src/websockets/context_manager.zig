@@ -30,9 +30,14 @@ pub const ContextManager = struct {
         return .{ .allocator = allocator, .contexts = ContextList.init(allocator) };
     }
 
+    // added for simplifying the free process of fields, still requires destroy to be called!
+    pub fn freeContext(self: *Self, context: *Context) void {
+        self.allocator.free(context.username);
+    }
+
     pub fn deinit(self: *Self) void {
         for (self.contexts.items) |ctx| {
-            self.allocator.free(ctx.username);
+            self.freeContext(ctx);
             self.allocator.destroy(ctx);
         }
         self.contexts.deinit();
