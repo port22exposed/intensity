@@ -55,6 +55,12 @@ pub const ContextManager = struct {
         }
     }
 
+    pub fn systemMessage(self: *Self, message: []const u8) !void {
+        try self.sendPacket("systemMessage", .{
+            .message = message,
+        }, null);
+    }
+
     pub fn newContext(self: *Self, username: []u8) !*Context {
         self.mutex.lock();
         defer self.mutex.unlock();
