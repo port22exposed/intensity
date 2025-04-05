@@ -61,10 +61,8 @@ window.onload = async () => {
 	websocket.send(
 		JSON.stringify({
 			type: "keyExchange",
-			data: {
-				stage: "publicKeyDisclosure",
-				key: publicKey,
-			},
+			stage: "publicKeyDisclosure",
+			key: publicKey,
 		})
 	)
 
