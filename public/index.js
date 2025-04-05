@@ -5,12 +5,14 @@ import {
 } from "./utility.js"
 import { handleCommand } from "./commands.js"
 import { onmessage } from "./packets.js"
+import { publicKey } from "./crypto.js"
 import * as dom from "./dom.js"
 
 let websocket
 
 function exit() {
-	window.location.replace("https://example.com")
+	// window.location.replace("https://example.com")
+	// this sucks for debugging
 }
 
 export function getWebSocket() {
@@ -55,6 +57,16 @@ window.onload = async () => {
 	websocket.onclose = exit
 
 	dom.messagebox.focus()
+
+	websocket.send(
+		JSON.stringify({
+			type: "keyExchange",
+			data: {
+				stage: "publicKeyDisclosure",
+				key: publicKey,
+			},
+		})
+	)
 
 	sendSystem("Type `/help` for commands!")
 
