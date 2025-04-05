@@ -10,6 +10,7 @@ Intensity is a post-quantum end-to-end-encrypted chat server, and client for qui
   - Kyber1024-90s for the key exchange and AES256 for symmetric encryption.
 
 ## Build Instructions
+
 > **Notice:** Zap is not compatible with Windows, your best bet would be [WSL](https://learn.microsoft.com/en-us/windows/wsl/install).
 
 We use the as of writing this stable version of [Zig](https://ziglang.org/), v14. We also rely on [zigzap/zig](https://github.com/zigzap/zap) but Zig should automagically handle that!
@@ -18,4 +19,4 @@ We use the as of writing this stable version of [Zig](https://ziglang.org/), v14
 
 ## Source Conditions
 
-This project is licensed under the [GNU AGPLv3](./LICENSE) license. The website's favicon (specifically this [file](./public/favicon.ico)) is licensed under the MIT license.
+This project is licensed under the [European Union Public License (EUPL), version 1.2](./LICENSE) or later. The website's favicon (specifically this [file](./public/favicon.ico)) is licensed under the MIT license.
