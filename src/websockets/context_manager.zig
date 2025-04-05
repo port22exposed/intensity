@@ -9,6 +9,7 @@ pub const WebSocketHandler = WebSockets.Handler(Context);
 
 pub const Context = struct {
     username: []u8,
+    publicKey: ?[]u8,
     handle: ?WebSockets.WsHandle,
     permission: u8,
     subscribe_args: WebSocketHandler.SubscribeArgs,
