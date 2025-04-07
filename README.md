@@ -1,3 +1,6 @@
+> [!WARNING]
+> This project is NOT yet in a functional state and is still being created. However, feel free to contribute if you have time!
+
 # Intensity
 
 Intensity is a post-quantum end-to-end-encrypted chat server, and client for quick fire temporary chat rooms.
